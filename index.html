@@ -8,127 +8,331 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:#120E26;color:#fff;font-family:Figtree,-apple-system,system-ui,sans-serif}
+html,body{margin:0;min-height:100%;background:#120E26;color:#fff;font-family:Figtree,-apple-system,system-ui,sans-serif}
 button{font:inherit;color:inherit;border:0;cursor:pointer}
-.app{display:flex;flex-direction:column;gap:12px;min-height:100%;padding:max(14px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));max-width:560px;margin:0 auto}
+.app{display:flex;flex-direction:column;gap:12px;min-height:100vh;padding:max(14px,env(safe-area-inset-top)) 16px 110px;max-width:620px;margin:0 auto}
 .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .top h1{font-size:20px;font-weight:800;margin:0}
 .top small{display:block;font-size:13px;opacity:.7;font-weight:600}
-.cuenta{min-width:46px;height:46px;border-radius:23px;background:#7C5CFF;display:grid;place-items:center;font-weight:900;font-size:18px}
-.video{position:relative;border-radius:26px;overflow:hidden;background:#000;aspect-ratio:1/1}
-.video video{width:100%;height:100%;object-fit:cover;display:block}
-.marco{position:absolute;inset:18%;border:3px solid rgba(255,255,255,.9);border-radius:28px;box-shadow:0 0 0 999px rgba(0,0,0,.28)}
-.msg{position:absolute;left:12px;right:12px;bottom:12px;text-align:center;font-size:14px}
+.cuenta{min-width:46px;height:46px;padding:0 10px;border-radius:23px;background:#7C5CFF;display:grid;place-items:center;font-weight:900;font-size:18px}
+.modos{display:flex;background:rgba(255,255,255,.08);border-radius:999px;padding:4px}
+.modos button{flex:1;padding:10px;border-radius:999px;font-weight:700;font-size:14px;background:none;opacity:.7}
+.modos button.on{background:#fff;color:#120E26;opacity:1}
+.video{position:relative;border-radius:26px;overflow:hidden;background:#000;aspect-ratio:3/4;max-height:58vh;width:100%}
+.video video,.video canvas{position:absolute;inset:0;width:100%;height:100%}
+.video video{object-fit:cover}
+.marco{position:absolute;inset:10%;border:3px solid rgba(255,255,255,.85);border-radius:28px;pointer-events:none}
+.msg{position:absolute;left:12px;right:12px;bottom:12px;text-align:center;font-size:14px;margin:0}
 .res{border-radius:20px;padding:12px 16px;background:rgba(255,255,255,.1);transition:background .15s}
-.res b{display:block;font-size:20px;font-weight:800}.res span{font-size:14px;opacity:.85}
+.res b{display:block;font-size:19px;font-weight:800}.res span{font-size:14px;opacity:.85}
 .res.ok{background:#1F9D62}.res.mal{background:#E5484D}
-.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:6px}
-.tile{height:46px;border-radius:12px;background:rgba(255,255,255,.1);font-weight:800;font-size:16px;position:relative}
-.tile.on{background:#1F9D62}
+.clave{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.clave span{font-size:14px;opacity:.8;margin-right:4px}
+.clave button{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.12);font-weight:900;font-size:18px}
+.clave button.on{background:#1F9D62}
+.barras{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.barra{background:rgba(255,255,255,.08);border-radius:14px;padding:8px;text-align:center;font-weight:800}
+.barra.ok{background:#1F9D62}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px}
+.tile{height:54px;border-radius:12px;background:rgba(255,255,255,.1);font-weight:800;font-size:15px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05}
+.tile small{font-size:9px;font-weight:600;opacity:.8;max-width:50px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tile.on{background:#1F9D62}.tile.mal{background:#E5484D}
 .tile i{position:absolute;top:-5px;right:-5px;min-width:20px;height:20px;border-radius:10px;background:#7C5CFF;font-style:normal;font-size:12px;display:grid;place-items:center}
 .nota{font-size:13px;opacity:.7;margin:0}
-.btns{display:flex;gap:10px;margin-top:auto}
+.btns{display:flex;gap:10px;position:fixed;left:0;right:0;bottom:0;padding:12px 16px max(14px,env(safe-area-inset-bottom));background:linear-gradient(transparent,#120E26 35%);max-width:620px;margin:0 auto}
 .btns button{flex:1;padding:16px;border-radius:999px;font-weight:800;font-size:16px}
-.ok-btn{background:#7C5CFF}.sec{background:rgba(255,255,255,.12)}
+.ok-btn{background:#7C5CFF}.sec{background:#2A2545}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="top"><div><h1 id="titulo">Scanner</h1><small id="sub"></small></div><div class="cuenta" id="cuenta">0</div></div>
-  <div class="video"><video id="vid" playsinline muted></video><div class="marco"></div><p class="msg" id="msg">Starting camera…</p></div>
-  <div class="res" id="res"><b>Loading the reader…</b><span>One moment</span></div>
-  <p class="nota">Green numbers are already scanned. Tap a number to add or remove it by hand.</p>
+  <div class="modos" id="modos"><button data-m="tarjetas">Big cards</button><button data-m="qr">QR codes</button></div>
+  <div class="video"><video id="vid" playsinline muted></video><canvas id="capa"></canvas><div class="marco" id="marco"></div><p class="msg" id="msg">Starting camera…</p></div>
+  <div class="res" id="res"><b>Ready</b><span>Point the camera at the cards</span></div>
+  <div id="quiz" hidden>
+    <div class="clave"><span>Correct answer:</span><button data-k="A">A</button><button data-k="B">B</button><button data-k="C">C</button><button data-k="D">D</button></div>
+    <div class="barras" id="barras" style="margin-top:10px"></div>
+  </div>
+  <p class="nota" id="ayuda">Green numbers are already scanned. Tap a number to add or remove it by hand.</p>
   <div class="tiles" id="tiles"></div>
   <div class="btns"><button class="sec" id="cancelar">Cancel</button><button class="ok-btn" id="terminar">Finish and save</button></div>
 </div>
 <script>
+/* Detector de tarjetas (marcadores 5x5) - sin dependencias */
+var MARCAS = (function () {
+  var DIC = ["1010001011011001010111100", "0000111000000011011100110", "1101011110000111011011101", "1000000111001010111110111", "1101011101011010100100100", "1110101000000100000101101", "0110100111101011111101100", "0111000100001010001101011", "1000011010110000100110010", "1001100010011111110100101", "1001111001110111000000011", "1101000101101101011000000", "1111001100010101100010001", "0010111100111000101100110", "1111111001111110010101000", "0010100011110001101111111", "0100101111010011101011000", "0101111101010001001101111", "0111101100100110111000100", "1000001100001110111101000", "1001011011101101001110101", "1010100001110010001000000", "1011010110000110010100001", "0101110100001001011011110", "1100111001101000000100011", "1101001011001100101110010", "1110000111100111010001011", "0001000100100001001000110", "0001110111001011001110010", "0001001000010001000111011", "0001001110011011101101110", "0001101101000100001110011", "0010000001101000011001110", "0010010101010101011001000", "0010001100100001110111010", "0011110100110111111101010", "0100110011000101010101100", "0100000101101000100000001", "0100110101010110100011101", "0100001100011110001110010", "0101011010010100000100101", "0101001010010111110011110", "0110110000100100111110111", "0110000110000100111011001", "0110110100111111000110001", "0111010010110001001111010", "0111010011011100110010111", "0111110010100100000000110", "0111101011001000100100101", "0111101101011011111010111", "1000110110101100011100100", "1000110101101001001111001", "1000111100011100000001011", "1000101101001010001000101", "1001011111111101101001010", "1010110001100101110001101", "1010110011000011111110000", "1010000100010111111011111", "1010011100001001000100111", "1010101101101111100100010", "1011100111101101111110001", "1011001001100100100111100", "1011111001011101110000110", "1100010000000101010000111", "1100100010100011111011101", "1100001001110101110001010", "1100011011000010110101101", "1101100101100110110101001", "1101110101011110101110011", "1111010011101010000110010", "1111001110110010100101000", "0111101010111010000001010", "1101100010001101001010011", "0000110001100111001100101", "0001010101011001000011001", "0100110001110100110000001", "0101010000000011000011100", "1010000011010000101011000", "1100001010011000101001100", "1100101101101000100101100", "1111110101101001110100010", "0000010010010001010110101", "0000110011011110011100000", "0000010110101010001111100", "0000000101100011101101111", "0000100110010001010001001", "0000100101101001010100111", "0000011000100101101000011", "0000001100111101111000101", "0000011111010101000001101", "0000111110001111101010100", "0001110001110100001111001", "0001100100011101100100011", "0001011000011011001000111", "0001011011010010100011011", "0001011101001110110001101", "0001001111100010101100010", "0001111101111110111110101", "0010100100001111011100000", "0010001001000111011111101"];
+  function hamming(a, b) { var n = 0; for (var i = 0; i < 25; i++) if (a[i] !== b[i]) n++; return n; }
+  function detectar(rgba, W, H, opciones) {
+    opciones = opciones || {};
+    var maxId = opciones.maxId || 99, minLado = opciones.minLado || 14;
+    var N = W * H, gris = new Uint8Array(N), i, x, y;
+    for (i = 0; i < N; i++) { var p = i * 4; gris[i] = (rgba[p] * 77 + rgba[p + 1] * 150 + rgba[p + 2] * 29) >> 8; }
+    /* umbral adaptativo con imagen integral */
+    var W1 = W + 1, integ = new Float64Array(W1 * (H + 1));
+    for (y = 0; y < H; y++) { var suma = 0; for (x = 0; x < W; x++) { suma += gris[y * W + x]; integ[(y + 1) * W1 + x + 1] = integ[y * W1 + x + 1] + suma; } }
+    var r = Math.max(6, Math.round(Math.min(W, H) / 40)), bin = new Uint8Array(N);
+    for (y = 0; y < H; y++) {
+      var y0 = Math.max(0, y - r), y1 = Math.min(H, y + r + 1);
+      for (x = 0; x < W; x++) {
+        var x0 = Math.max(0, x - r), x1 = Math.min(W, x + r + 1);
+        var s = integ[y1 * W1 + x1] - integ[y0 * W1 + x1] - integ[y1 * W1 + x0] + integ[y0 * W1 + x0];
+        var media = s / ((x1 - x0) * (y1 - y0));
+        bin[y * W + x] = gris[y * W + x] < media - 6 ? 1 : 0;
+      }
+    }
+    /* componentes conectadas (8 vecinos) */
+    var etiq = new Int32Array(N), pila = new Int32Array(N), comps = [], e = 0;
+    for (i = 0; i < N; i++) {
+      if (!bin[i] || etiq[i]) continue;
+      e++; var tope = 0, cnt = 0, mnx = W, mxx = 0, mny = H, mxy = 0;
+      pila[tope++] = i; etiq[i] = e;
+      while (tope) {
+        var q = pila[--tope], qx = q % W, qy = (q - qx) / W; cnt++;
+        if (qx < mnx) mnx = qx; if (qx > mxx) mxx = qx; if (qy < mny) mny = qy; if (qy > mxy) mxy = qy;
+        for (var dy = -1; dy <= 1; dy++) {
+          var ny = qy + dy; if (ny < 0 || ny >= H) continue;
+          for (var dx = -1; dx <= 1; dx++) {
+            var nx = qx + dx; if (nx < 0 || nx >= W) continue;
+            var k = ny * W + nx; if (bin[k] && !etiq[k]) { etiq[k] = e; pila[tope++] = k; }
+          }
+        }
+      }
+      var bw = mxx - mnx + 1, bh = mxy - mny + 1;
+      if (bw >= minLado && bh >= minLado && bw < W * 0.95 && bh < H * 0.95 && bw / bh < 3.5 && bh / bw < 3.5) {
+        var llen = cnt / (bw * bh);
+        if (llen > 0.12 && llen < 0.9) comps.push({ e: e, cnt: cnt, x0: mnx, x1: mxx, y0: mny, y1: mxy });
+      }
+    }
+    var halladas = [];
+    comps.forEach(function (c) {
+      /* puntos del contorno exterior aproximado: extremos por fila */
+      var pts = [];
+      for (var yy = c.y0; yy <= c.y1; yy++) {
+        var izq = -1, der = -1;
+        for (var xx = c.x0; xx <= c.x1; xx++) if (etiq[yy * W + xx] === c.e) { if (izq < 0) izq = xx; der = xx; }
+        if (izq >= 0) { pts.push([izq, yy]); if (der !== izq) pts.push([der, yy]); }
+      }
+      if (pts.length < 8) return;
+      var cx = 0, cy = 0; pts.forEach(function (p) { cx += p[0]; cy += p[1]; }); cx /= pts.length; cy /= pts.length;
+      function lejos(px, py) { var m = -1, mp = null; pts.forEach(function (p) { var d = (p[0] - px) * (p[0] - px) + (p[1] - py) * (p[1] - py); if (d > m) { m = d; mp = p; } }); return mp; }
+      var a = lejos(cx, cy), b = lejos(a[0], a[1]);
+      var vx = b[0] - a[0], vy = b[1] - a[1], m1 = -1, m2 = -1, c1 = null, c2 = null;
+      pts.forEach(function (p) { var d = vx * (p[1] - a[1]) - vy * (p[0] - a[0]); if (d > m1) { m1 = d; c1 = p; } if (-d > m2) { m2 = -d; c2 = p; } });
+      if (!c1 || !c2) return;
+      var esq = [a, c1, b, c2];
+      var mx = (a[0] + b[0] + c1[0] + c2[0]) / 4, my = (a[1] + b[1] + c1[1] + c2[1]) / 4;
+      esq.sort(function (p, q) { return Math.atan2(p[1] - my, p[0] - mx) - Math.atan2(q[1] - my, q[0] - mx); });
+      var area = 0; for (var k = 0; k < 4; k++) { var p1 = esq[k], p2 = esq[(k + 1) % 4]; area += p1[0] * p2[1] - p2[0] * p1[1]; } area = Math.abs(area) / 2;
+      if (area < minLado * minLado) return;
+      var ratio = c.cnt / area; if (ratio < 0.2 || ratio > 0.95) return;
+      for (k = 0; k < 4; k++) { var l = Math.hypot(esq[k][0] - esq[(k + 1) % 4][0], esq[k][1] - esq[(k + 1) % 4][1]); if (l < minLado * 0.7) return; }
+      var res = leer(gris, W, H, esq, maxId);
+      if (res) halladas.push(res);
+    });
+    /* quitar duplicados del mismo id */
+    var vistos = {}, out = [];
+    halladas.forEach(function (h) { if (!vistos[h.id] || vistos[h.id].err > h.err) vistos[h.id] = h; });
+    for (var id in vistos) out.push(vistos[id]);
+    return out;
+  }
+  function homografia(esq) {
+    /* de cuadrado unitario (0,0),(1,0),(1,1),(0,1) a esq */
+    var x0 = esq[0][0], y0 = esq[0][1], x1 = esq[1][0], y1 = esq[1][1], x2 = esq[2][0], y2 = esq[2][1], x3 = esq[3][0], y3 = esq[3][1];
+    var dx1 = x1 - x2, dx2 = x3 - x2, dx3 = x0 - x1 + x2 - x3, dy1 = y1 - y2, dy2 = y3 - y2, dy3 = y0 - y1 + y2 - y3;
+    var den = dx1 * dy2 - dx2 * dy1, g = (dx3 * dy2 - dx2 * dy3) / den, h = (dx1 * dy3 - dx3 * dy1) / den;
+    return [x1 - x0 + g * x1, x3 - x0 + h * x3, x0, y1 - y0 + g * y1, y3 - y0 + h * y3, y0, g, h];
+  }
+  function leer(gris, W, H, esqBase, maxId) {
+    var mejor = null;
+    for (var s = 0; s < 4; s++) {
+      var esq = [esqBase[s], esqBase[(s + 1) % 4], esqBase[(s + 2) % 4], esqBase[(s + 3) % 4]];
+      var M = homografia(esq), vals = [];
+      for (var v = 0; v < 7; v++) for (var u = 0; u < 7; u++) {
+        var uu = (u + 0.5) / 7, vv = (v + 0.5) / 7, z = M[6] * uu + M[7] * vv + 1;
+        var px = (M[0] * uu + M[1] * vv + M[2]) / z, py = (M[3] * uu + M[4] * vv + M[5]) / z;
+        var sum = 0, n = 0;
+        for (var oy = -1; oy <= 1; oy++) for (var ox = -1; ox <= 1; ox++) {
+          var ix = Math.round(px + ox), iy = Math.round(py + oy);
+          if (ix >= 0 && iy >= 0 && ix < W && iy < H) { sum += gris[iy * W + ix]; n++; }
+        }
+        vals.push(n ? sum / n : 0);
+      }
+      if (s === 0) {
+        var borde = [], k;
+        for (k = 0; k < 49; k++) { var cu = k % 7, cv = (k - cu) / 7; if (cu === 0 || cv === 0 || cu === 6 || cv === 6) borde.push(vals[k]); }
+        borde.sort(function (a, b) { return a - b; });
+        var oscuro = borde[12], claroV = Math.max.apply(null, vals);
+        if (claroV - oscuro < 25) return null;
+        var umbral = (oscuro + claroV) / 2, malos = 0;
+        borde.forEach(function (b) { if (b > umbral) malos++; });
+        if (malos > 3) return null;
+        var U = umbral;
+      }
+      var bits = '';
+      for (var r = 1; r < 6; r++) for (var c = 1; c < 6; c++) bits += vals[r * 7 + c] > U ? '1' : '0';
+      for (var id = 0; id <= maxId && id < DIC.length; id++) {
+        var d = hamming(bits, DIC[id]);
+        if (d <= 2 && (!mejor || d < mejor.err)) mejor = { id: id, err: d, esq: esq };
+      }
+    }
+    if (!mejor) return null;
+    /* respuesta: lado del marcador que está arriba (A arriba, B derecha, C abajo, D izquierda) */
+    var e2 = mejor.esq, lados = [[0, 1, 'A'], [1, 2, 'B'], [2, 3, 'C'], [3, 0, 'D']], arriba = null, my = 1e9;
+    lados.forEach(function (l) { var y = (e2[l[0]][1] + e2[l[1]][1]) / 2; if (y < my) { my = y; arriba = l[2]; } });
+    var cx = (e2[0][0] + e2[1][0] + e2[2][0] + e2[3][0]) / 4, cy = (e2[0][1] + e2[1][1] + e2[2][1] + e2[3][1]) / 4;
+    return { id: mejor.id, err: mejor.err, resp: arriba, esq: e2, x: cx, y: cy };
+  }
+  return { detectar: detectar };
+})();
+
 (function () {
-  var q = new URLSearchParams(location.search);
+  var fuente = location.hash.length > 1 ? location.hash.slice(1) : location.search.slice(1);
+  var q = new URLSearchParams(fuente);
   var modo = q.get('m') || 'asis', gid = q.get('g') || '', act = q.get('a') || '', ret = q.get('r') || '', t = q.get('t') || String(Date.now());
-  var nombres = { asis: 'Attendance', part: 'Participation', act: 'Turned in' };
+  var nombres = { asis: 'Attendance', part: 'Participation', act: 'Turned in', quiz: 'Quiz' };
   document.getElementById('titulo').textContent = nombres[modo] || 'Scanner';
-  document.getElementById('sub').textContent = (q.get('l') || '') + (modo === 'part' ? ' · each scan adds 1' : '');
-  var mapa = {}, orden = [];
-  (q.get('n') || '').split(',').forEach(function (p) { var x = p.split(':'); if (x[0]) { mapa[x[0]] = x[1]; orden.push(x[0]); } });
-  var conteo = {}, ultimo = {}, total = 0;
+  document.getElementById('sub').textContent = (q.get('l') || '') + (q.get('x') ? ' · ' + q.get('x') : '') + (modo === 'part' ? ' · each scan adds 1' : '');
+  var porCodigo = {}, porNum = {}, orden = [];
+  (q.get('n') || '').split(',').forEach(function (p) {
+    var x = p.split(':'); if (!x[0]) return;
+    var al = { code: x[0], num: x[1], nom: x[2] ? decodeURIComponent(x[2]) : '' };
+    porCodigo[al.code] = al; porNum[String(Number(al.num))] = al; orden.push(al);
+  });
+  var conteo = {}, respuesta = {}, ultimo = {}, total = 0, clave = '';
+  var metodo = modo === 'quiz' ? 'tarjetas' : (localStorage.getItem('metodo') || 'tarjetas');
+  if (modo === 'quiz') { document.getElementById('modos').hidden = true; document.getElementById('quiz').hidden = false; document.getElementById('ayuda').textContent = 'Students turn the card so their answer letter is on top. Answers update live.'; }
+  function ponerMetodo(m) {
+    metodo = m; localStorage.setItem('metodo', m);
+    document.querySelectorAll('#modos button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === m); });
+    document.getElementById('marco').hidden = m === 'tarjetas';
+    aviso2('Ready', m === 'tarjetas' ? 'Point the camera at the cards, several at once is fine' : 'Show a QR code inside the frame');
+  }
+  document.querySelectorAll('#modos button').forEach(function (b) { b.onclick = function () { ponerMetodo(b.dataset.m); }; });
+  document.querySelectorAll('.clave button').forEach(function (b) { b.onclick = function () { clave = clave === b.dataset.k ? '' : b.dataset.k; document.querySelectorAll('.clave button').forEach(function (x) { x.classList.toggle('on', x.dataset.k === clave); }); pintar(); }; });
   var tiles = document.getElementById('tiles');
   function pintar() {
     tiles.innerHTML = '';
-    orden.forEach(function (c) {
-      var b = document.createElement('button'); b.className = 'tile' + (conteo[c] ? ' on' : ''); b.textContent = mapa[c];
+    var cuenta = { A: 0, B: 0, C: 0, D: 0 };
+    orden.forEach(function (al) {
+      var b = document.createElement('button'), c = al.code, r = respuesta[c];
+      var on = modo === 'quiz' ? !!r : !!conteo[c];
+      b.className = 'tile' + (on ? (modo === 'quiz' && clave && r !== clave ? ' mal' : ' on') : '');
+      b.innerHTML = '<span></span><small></small>'; b.firstChild.textContent = modo === 'quiz' && r ? al.num + ' ' + r : al.num; b.lastChild.textContent = al.nom;
       if (modo === 'part' && conteo[c] > 1) { var i = document.createElement('i'); i.textContent = conteo[c]; b.appendChild(i); }
-      b.onclick = function () { if (conteo[c] && modo !== 'part') delete conteo[c]; else conteo[c] = (conteo[c] || 0) + 1; total = Object.keys(conteo).reduce(function (s, k) { return s + conteo[k]; }, 0); actualizar(); };
+      if (r) cuenta[r]++;
+      b.onclick = function () {
+        if (modo === 'quiz') { var o = ['A', 'B', 'C', 'D', undefined], k = o.indexOf(respuesta[c]); respuesta[c] = o[(k + 1) % 5]; if (!respuesta[c]) delete respuesta[c]; }
+        else if (conteo[c] && modo !== 'part') delete conteo[c]; else conteo[c] = (conteo[c] || 0) + 1;
+        total = Object.keys(conteo).reduce(function (s, k) { return s + conteo[k]; }, 0); actualizar();
+      };
       tiles.appendChild(b);
     });
+    if (modo === 'quiz') {
+      document.getElementById('barras').innerHTML = ['A', 'B', 'C', 'D'].map(function (k) { return '<div class="barra' + (clave === k ? ' ok' : '') + '">' + k + ' · ' + cuenta[k] + '</div>'; }).join('');
+    }
   }
-  function actualizar() { document.getElementById('cuenta').textContent = modo === 'part' ? total : Object.keys(conteo).length; pintar(); }
+  function actualizar() {
+    document.getElementById('cuenta').textContent = modo === 'quiz' ? Object.keys(respuesta).length + '/' + orden.length : modo === 'part' ? total : Object.keys(conteo).length;
+    pintar();
+  }
   var audio = null;
-  function aviso(ok, t1, t2) {
-    var r = document.getElementById('res'); r.className = 'res ' + (ok ? 'ok' : 'mal'); r.innerHTML = '<b></b><span></span>'; r.firstChild.textContent = t1; r.lastChild.textContent = t2 || '';
-    try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); var o = audio.createOscillator(), g = audio.createGain(); o.frequency.value = ok ? 880 : 220; g.gain.value = .08; o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + (ok ? .09 : .25)); } catch (e) { }
-    if (navigator.vibrate) navigator.vibrate(ok ? 40 : [80, 60, 80]);
+  function sonar(ok) {
+    try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); var o = audio.createOscillator(), g = audio.createGain(); o.frequency.value = ok ? 880 : 220; g.gain.value = .08; o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + (ok ? .08 : .25)); } catch (e) { }
+    if (navigator.vibrate) navigator.vibrate(ok ? 30 : [80, 60, 80]);
   }
-  function leer(txt) {
-    var c = String(txt).toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!c) return;
-    var ahora = Date.now(); if (ultimo[c] && ahora - ultimo[c] < (modo === 'part' ? 4000 : 2500)) return; ultimo[c] = ahora;
-    if (!mapa[c]) { aviso(false, 'Not in this group', c); return; }
-    if (conteo[c] && modo !== 'part') { aviso(true, 'No. ' + mapa[c], 'Already scanned'); return; }
-    conteo[c] = (conteo[c] || 0) + 1; total++;
-    aviso(true, 'No. ' + mapa[c], modo === 'part' ? '+1 participation (' + conteo[c] + ')' : 'Scanned');
+  function aviso2(a, b, cls) { var r = document.getElementById('res'); r.className = 'res' + (cls ? ' ' + cls : ''); r.innerHTML = '<b></b><span></span>'; r.firstChild.textContent = a; r.lastChild.textContent = b || ''; }
+  function registrar(al, resp) {
+    var c = al.code, ahora = Date.now();
+    if (modo === 'quiz') {
+      if (respuesta[c] !== resp) { respuesta[c] = resp; sonar(true); aviso2('No. ' + al.num + ' ' + al.nom, 'Answer ' + resp, 'ok'); actualizar(); }
+      return;
+    }
+    if (ultimo[c] && ahora - ultimo[c] < (modo === 'part' ? 4000 : 2500)) return; ultimo[c] = ahora;
+    if (conteo[c] && modo !== 'part') return;
+    conteo[c] = (conteo[c] || 0) + 1; total++; sonar(true);
+    aviso2('No. ' + al.num + ' ' + al.nom, modo === 'part' ? '+1 participation (' + conteo[c] + ')' : 'Scanned', 'ok');
     actualizar();
   }
-  var vid = document.getElementById('vid'), cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
-  var detector = null, cuadro = 0;
+  function leerQR(txt) {
+    var c = String(txt).toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!c) return;
+    var al = porCodigo[c];
+    if (!al) { var ahora = Date.now(); if (!ultimo[c] || ahora - ultimo[c] > 2500) { ultimo[c] = ahora; sonar(false); aviso2('Not in this group', c, 'mal'); } return; }
+    registrar(al);
+  }
+  var vid = document.getElementById('vid'), capa = document.getElementById('capa'), cc = capa.getContext('2d');
+  var cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
+  var etiquetas = {}, cuadro = 0;
+  function dibujarEtiquetas(k) {
+    var bw = capa.clientWidth, bh = capa.clientHeight, dpr = window.devicePixelRatio || 1;
+    if (capa.width !== Math.round(bw * dpr)) { capa.width = Math.round(bw * dpr); capa.height = Math.round(bh * dpr); }
+    cc.setTransform(dpr, 0, 0, dpr, 0, 0); cc.clearRect(0, 0, bw, bh);
+    var vw = vid.videoWidth, vh = vid.videoHeight; if (!vw) return;
+    var s = Math.max(bw / vw, bh / vh), ox = (bw - vw * s) / 2, oy = (bh - vh * s) / 2, ahora = Date.now();
+    cc.font = '800 15px Figtree, system-ui, sans-serif'; cc.textBaseline = 'middle';
+    Object.keys(etiquetas).forEach(function (id) {
+      var e = etiquetas[id]; if (ahora - e.t > 700) { delete etiquetas[id]; return; }
+      var x = e.x / k * s + ox, y = e.y / k * s + oy, txt = e.txt, w = cc.measureText(txt).width + 34;
+      cc.fillStyle = 'rgba(18,14,38,.82)'; cc.beginPath(); if (cc.roundRect) cc.roundRect(x - w / 2, y - 16, w, 32, 16); else cc.rect(x - w / 2, y - 16, w, 32); cc.fill();
+      cc.fillStyle = e.color; cc.beginPath(); cc.arc(x - w / 2 + 14, y, 5, 0, 7); cc.fill();
+      cc.fillStyle = '#fff'; cc.fillText(txt, x - w / 2 + 24, y + 1);
+    });
+  }
+  var PASOS = [[1, 960], [0.5, 720], [0.75, 900], [0.34, 600]];
   function ciclo() {
     if (vid.readyState >= 2) {
-      var w = vid.videoWidth, h = vid.videoHeight, lado = Math.min(w, h) * 0.75, k = Math.min(1, 640 / lado);
-      cv.width = Math.round(lado * k); cv.height = cv.width;
-      cx.drawImage(vid, (w - lado) / 2, (h - lado) / 2, lado, lado, 0, 0, cv.width, cv.height);
-      if (window.jsQR) { cuadro++; var im = cx.getImageData(0, 0, cv.width, cv.height), r = jsQR(im.data, cv.width, cv.height, { inversionAttempts: cuadro % 3 ? 'dontInvert' : 'attemptBoth' }); if (r && r.data) leer(r.data); }
-      else if (detector) { detector.detect(cv).then(function (r) { if (r[0]) leer(r[0].rawValue); }).catch(function () { }); }
+      var w = vid.videoWidth, h = vid.videoHeight;
+      if (metodo === 'tarjetas') {
+        var k = Math.min(1, 1280 / Math.max(w, h)); cv.width = Math.round(w * k); cv.height = Math.round(h * k);
+        cx.drawImage(vid, 0, 0, cv.width, cv.height);
+        var marcas = MARCAS.detectar(cx.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height, { maxId: 99, minLado: 12 }), ahora = Date.now();
+        marcas.forEach(function (m) {
+          var al = porNum[String(m.id)];
+          if (!al) { etiquetas[m.id] = { x: m.x, y: m.y, t: ahora, txt: 'No. ' + m.id + '?', color: '#E5484D' }; return; }
+          registrar(al, m.resp);
+          etiquetas[m.id] = { x: m.x, y: m.y, t: ahora, txt: (al.nom || 'No. ' + al.num) + (modo === 'quiz' ? '  ' + m.resp : ''), color: modo === 'quiz' && clave && m.resp !== clave ? '#E5484D' : '#1F9D62' };
+        });
+        dibujarEtiquetas(k);
+      } else {
+        etiquetas = {}; dibujarEtiquetas(1);
+        if (window.jsQR) {
+          var paso = PASOS[cuadro % PASOS.length]; cuadro++;
+          var lado = Math.min(w, h) * paso[0], kk = Math.min(1, paso[1] / lado);
+          cv.width = Math.round(lado * kk); cv.height = cv.width;
+          cx.drawImage(vid, (w - lado) / 2, (h - lado) / 2, lado, lado, 0, 0, cv.width, cv.height);
+          var r = jsQR(cx.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height, { inversionAttempts: 'dontInvert' });
+          if (r && r.data) leerQR(r.data);
+        }
+      }
     }
-    setTimeout(ciclo, 120);
+    setTimeout(ciclo, metodo === 'tarjetas' ? 40 : 70);
   }
-  var FUENTES = [
-    'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js',
-    'https://unpkg.com/jsqr@1.4.0/dist/jsQR.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js'
-  ];
-  function cargarLector(i) {
-    if (window.jsQR) { estadoLector(true); return; }
-    if (i >= FUENTES.length) {
-      if ('BarcodeDetector' in window) { try { detector = new BarcodeDetector({ formats: ['qr_code'] }); estadoLector(true); return; } catch (e) { } }
-      estadoLector(false); return;
-    }
-    var sc = document.createElement('script'); sc.src = FUENTES[i];
-    sc.onload = function () { if (window.jsQR) estadoLector(true); else cargarLector(i + 1); };
-    sc.onerror = function () { cargarLector(i + 1); };
-    document.head.appendChild(sc);
+  var FUENTES = ['https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js', 'https://unpkg.com/jsqr@1.4.0/dist/jsQR.js', 'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js'];
+  (function cargarQR(i) { if (window.jsQR || i >= FUENTES.length) return; var sc = document.createElement('script'); sc.src = FUENTES[i]; sc.onerror = function () { cargarQR(i + 1); }; document.head.appendChild(sc); })(0);
+  function zoomCamara(track) {
+    try { var cap = track.getCapabilities ? track.getCapabilities() : {}; if (cap.focusMode && cap.focusMode.indexOf('continuous') >= 0) track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(function () { }); } catch (e) { }
   }
-  function estadoLector(ok) {
-    var r = document.getElementById('res');
-    if (ok) { r.className = 'res'; r.innerHTML = '<b>Ready</b><span>Show a code inside the frame</span>'; }
-    else { r.className = 'res mal'; r.innerHTML = '<b>The QR reader didn’t load</b><span>Check your internet and reload the page</span>'; }
-  }
-  cargarLector(0);
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 1280 } }, audio: false })
-    .then(function (s) { vid.srcObject = s; return vid.play(); })
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false })
+    .then(function (s) { vid.srcObject = s; zoomCamara(s.getVideoTracks()[0]); return vid.play(); })
     .then(function () { document.getElementById('msg').textContent = ''; ciclo(); })
     .catch(function () { document.getElementById('msg').textContent = 'Allow the camera for this page in your browser settings, then reload.'; });
   function volver(conDatos) {
     if (!ret) { alert('Open this page from your app.'); return; }
     var url = ret;
     if (conDatos) {
-      var codigos = [];
-      Object.keys(conteo).forEach(function (c) { for (var i = 0; i < conteo[c]; i++) codigos.push(c); });
-      url += (ret.indexOf('?') >= 0 ? '&' : '?') + 'esc=' + modo + '&g=' + encodeURIComponent(gid) + (act ? '&a=' + encodeURIComponent(act) : '') + '&t=' + t + '&c=' + codigos.join(',');
+      var cods = [];
+      if (modo === 'quiz') {
+        if (!clave) { alert('Choose the correct answer first (A, B, C or D).'); return; }
+        cods.push('KEY.' + clave);
+        Object.keys(respuesta).forEach(function (c) { cods.push(c + '.' + respuesta[c]); });
+      } else Object.keys(conteo).forEach(function (c) { for (var i = 0; i < conteo[c]; i++) cods.push(c); });
+      url += (ret.indexOf('?') >= 0 ? '&' : '?') + 'esc=' + modo + '&g=' + encodeURIComponent(gid) + (act ? '&a=' + encodeURIComponent(act) : '') + '&t=' + t + '&c=' + cods.join(',');
     }
     location.href = url;
   }
   document.getElementById('terminar').onclick = function () { volver(true); };
   document.getElementById('cancelar').onclick = function () { volver(false); };
-  actualizar();
+  ponerMetodo(metodo); actualizar();
 })();
 </script>
 </body>

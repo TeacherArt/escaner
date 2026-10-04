@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#120E26">
+<title>Camera scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#120E26;color:#fff;font-family:Figtree,-apple-system,system-ui,sans-serif}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+.app{display:flex;flex-direction:column;gap:12px;min-height:100%;padding:max(14px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));max-width:560px;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.top h1{font-size:20px;font-weight:800;margin:0}
+.top small{display:block;font-size:13px;opacity:.7;font-weight:600}
+.cuenta{min-width:46px;height:46px;border-radius:23px;background:#7C5CFF;display:grid;place-items:center;font-weight:900;font-size:18px}
+.video{position:relative;border-radius:26px;overflow:hidden;background:#000;aspect-ratio:1/1}
+.video video{width:100%;height:100%;object-fit:cover;display:block}
+.marco{position:absolute;inset:18%;border:3px solid rgba(255,255,255,.9);border-radius:28px;box-shadow:0 0 0 999px rgba(0,0,0,.28)}
+.msg{position:absolute;left:12px;right:12px;bottom:12px;text-align:center;font-size:14px}
+.res{border-radius:20px;padding:12px 16px;background:rgba(255,255,255,.1);transition:background .15s}
+.res b{display:block;font-size:20px;font-weight:800}.res span{font-size:14px;opacity:.85}
+.res.ok{background:#1F9D62}.res.mal{background:#E5484D}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:6px}
+.tile{height:46px;border-radius:12px;background:rgba(255,255,255,.1);font-weight:800;font-size:16px;position:relative}
+.tile.on{background:#1F9D62}
+.tile i{position:absolute;top:-5px;right:-5px;min-width:20px;height:20px;border-radius:10px;background:#7C5CFF;font-style:normal;font-size:12px;display:grid;place-items:center}
+.nota{font-size:13px;opacity:.7;margin:0}
+.btns{display:flex;gap:10px;margin-top:auto}
+.btns button{flex:1;padding:16px;border-radius:999px;font-weight:800;font-size:16px}
+.ok-btn{background:#7C5CFF}.sec{background:rgba(255,255,255,.12)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top"><div><h1 id="titulo">Scanner</h1><small id="sub"></small></div><div class="cuenta" id="cuenta">0</div></div>
+  <div class="video"><video id="vid" playsinline muted></video><div class="marco"></div><p class="msg" id="msg">Starting camera…</p></div>
+  <div class="res" id="res"><b>Ready</b><span>Show a code inside the frame</span></div>
+  <p class="nota">Green numbers are already scanned. Tap a number to add or remove it by hand.</p>
+  <div class="tiles" id="tiles"></div>
+  <div class="btns"><button class="sec" id="cancelar">Cancel</button><button class="ok-btn" id="terminar">Finish and save</button></div>
+</div>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var modo = q.get('m') || 'asis', gid = q.get('g') || '', act = q.get('a') || '', ret = q.get('r') || '', t = q.get('t') || String(Date.now());
+  var nombres = { asis: 'Attendance', part: 'Participation', act: 'Turned in' };
+  document.getElementById('titulo').textContent = nombres[modo] || 'Scanner';
+  document.getElementById('sub').textContent = (q.get('l') || '') + (modo === 'part' ? ' · each scan adds 1' : '');
+  var mapa = {}, orden = [];
+  (q.get('n') || '').split(',').forEach(function (p) { var x = p.split(':'); if (x[0]) { mapa[x[0]] = x[1]; orden.push(x[0]); } });
+  var conteo = {}, ultimo = {}, total = 0;
+  var tiles = document.getElementById('tiles');
+  function pintar() {
+    tiles.innerHTML = '';
+    orden.forEach(function (c) {
+      var b = document.createElement('button'); b.className = 'tile' + (conteo[c] ? ' on' : ''); b.textContent = mapa[c];
+      if (modo === 'part' && conteo[c] > 1) { var i = document.createElement('i'); i.textContent = conteo[c]; b.appendChild(i); }
+      b.onclick = function () { if (conteo[c] && modo !== 'part') delete conteo[c]; else conteo[c] = (conteo[c] || 0) + 1; total = Object.keys(conteo).reduce(function (s, k) { return s + conteo[k]; }, 0); actualizar(); };
+      tiles.appendChild(b);
+    });
+  }
+  function actualizar() { document.getElementById('cuenta').textContent = modo === 'part' ? total : Object.keys(conteo).length; pintar(); }
+  var audio = null;
+  function aviso(ok, t1, t2) {
+    var r = document.getElementById('res'); r.className = 'res ' + (ok ? 'ok' : 'mal'); r.innerHTML = '<b></b><span></span>'; r.firstChild.textContent = t1; r.lastChild.textContent = t2 || '';
+    try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); var o = audio.createOscillator(), g = audio.createGain(); o.frequency.value = ok ? 880 : 220; g.gain.value = .08; o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + (ok ? .09 : .25)); } catch (e) { }
+    if (navigator.vibrate) navigator.vibrate(ok ? 40 : [80, 60, 80]);
+  }
+  function leer(txt) {
+    var c = String(txt).toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!c) return;
+    var ahora = Date.now(); if (ultimo[c] && ahora - ultimo[c] < (modo === 'part' ? 4000 : 2500)) return; ultimo[c] = ahora;
+    if (!mapa[c]) { aviso(false, 'Not in this group', c); return; }
+    if (conteo[c] && modo !== 'part') { aviso(true, 'No. ' + mapa[c], 'Already scanned'); return; }
+    conteo[c] = (conteo[c] || 0) + 1; total++;
+    aviso(true, 'No. ' + mapa[c], modo === 'part' ? '+1 participation (' + conteo[c] + ')' : 'Scanned');
+    actualizar();
+  }
+  var vid = document.getElementById('vid'), cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
+  var detector = null;
+  function ciclo() {
+    if (vid.readyState >= 2) {
+      var w = vid.videoWidth, h = vid.videoHeight, lado = Math.min(w, h) * 0.75, k = Math.min(1, 640 / lado);
+      cv.width = Math.round(lado * k); cv.height = cv.width;
+      cx.drawImage(vid, (w - lado) / 2, (h - lado) / 2, lado, lado, 0, 0, cv.width, cv.height);
+      if (window.jsQR) { var im = cx.getImageData(0, 0, cv.width, cv.height), r = jsQR(im.data, cv.width, cv.height, { inversionAttempts: 'dontInvert' }); if (r && r.data) leer(r.data); }
+      else if (detector) { detector.detect(cv).then(function (r) { if (r[0]) leer(r[0].rawValue); }).catch(function () { }); }
+    }
+    setTimeout(ciclo, 120);
+  }
+  if (!window.jsQR && 'BarcodeDetector' in window) { try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { } }
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 1280 } }, audio: false })
+    .then(function (s) { vid.srcObject = s; return vid.play(); })
+    .then(function () { document.getElementById('msg').textContent = ''; ciclo(); })
+    .catch(function () { document.getElementById('msg').textContent = 'Allow the camera for this page in your browser settings, then reload.'; });
+  function volver(conDatos) {
+    if (!ret) { alert('Open this page from your app.'); return; }
+    var url = ret;
+    if (conDatos) {
+      var codigos = [];
+      Object.keys(conteo).forEach(function (c) { for (var i = 0; i < conteo[c]; i++) codigos.push(c); });
+      url += (ret.indexOf('?') >= 0 ? '&' : '?') + 'esc=' + modo + '&g=' + encodeURIComponent(gid) + (act ? '&a=' + encodeURIComponent(act) : '') + '&t=' + t + '&c=' + codigos.join(',');
+    }
+    location.href = url;
+  }
+  document.getElementById('terminar').onclick = function () { volver(true); };
+  document.getElementById('cancelar').onclick = function () { volver(false); };
+  actualizar();
+})();
+</script>
+</body>
+</html>

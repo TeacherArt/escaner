@@ -6,7 +6,6 @@
 <meta name="theme-color" content="#120E26">
 <title>Camera scanner</title>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800;900&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:#120E26;color:#fff;font-family:Figtree,-apple-system,system-ui,sans-serif}
@@ -37,7 +36,7 @@ button{font:inherit;color:inherit;border:0;cursor:pointer}
 <div class="app">
   <div class="top"><div><h1 id="titulo">Scanner</h1><small id="sub"></small></div><div class="cuenta" id="cuenta">0</div></div>
   <div class="video"><video id="vid" playsinline muted></video><div class="marco"></div><p class="msg" id="msg">Starting camera…</p></div>
-  <div class="res" id="res"><b>Ready</b><span>Show a code inside the frame</span></div>
+  <div class="res" id="res"><b>Loading the reader…</b><span>One moment</span></div>
   <p class="nota">Green numbers are already scanned. Tap a number to add or remove it by hand.</p>
   <div class="tiles" id="tiles"></div>
   <div class="btns"><button class="sec" id="cancelar">Cancel</button><button class="ok-btn" id="terminar">Finish and save</button></div>
@@ -79,18 +78,40 @@ button{font:inherit;color:inherit;border:0;cursor:pointer}
     actualizar();
   }
   var vid = document.getElementById('vid'), cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
-  var detector = null;
+  var detector = null, cuadro = 0;
   function ciclo() {
     if (vid.readyState >= 2) {
       var w = vid.videoWidth, h = vid.videoHeight, lado = Math.min(w, h) * 0.75, k = Math.min(1, 640 / lado);
       cv.width = Math.round(lado * k); cv.height = cv.width;
       cx.drawImage(vid, (w - lado) / 2, (h - lado) / 2, lado, lado, 0, 0, cv.width, cv.height);
-      if (window.jsQR) { var im = cx.getImageData(0, 0, cv.width, cv.height), r = jsQR(im.data, cv.width, cv.height, { inversionAttempts: 'dontInvert' }); if (r && r.data) leer(r.data); }
+      if (window.jsQR) { cuadro++; var im = cx.getImageData(0, 0, cv.width, cv.height), r = jsQR(im.data, cv.width, cv.height, { inversionAttempts: cuadro % 3 ? 'dontInvert' : 'attemptBoth' }); if (r && r.data) leer(r.data); }
       else if (detector) { detector.detect(cv).then(function (r) { if (r[0]) leer(r[0].rawValue); }).catch(function () { }); }
     }
     setTimeout(ciclo, 120);
   }
-  if (!window.jsQR && 'BarcodeDetector' in window) { try { detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { } }
+  var FUENTES = [
+    'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js',
+    'https://unpkg.com/jsqr@1.4.0/dist/jsQR.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js'
+  ];
+  function cargarLector(i) {
+    if (window.jsQR) { estadoLector(true); return; }
+    if (i >= FUENTES.length) {
+      if ('BarcodeDetector' in window) { try { detector = new BarcodeDetector({ formats: ['qr_code'] }); estadoLector(true); return; } catch (e) { } }
+      estadoLector(false); return;
+    }
+    var sc = document.createElement('script'); sc.src = FUENTES[i];
+    sc.onload = function () { if (window.jsQR) estadoLector(true); else cargarLector(i + 1); };
+    sc.onerror = function () { cargarLector(i + 1); };
+    document.head.appendChild(sc);
+  }
+  function estadoLector(ok) {
+    var r = document.getElementById('res');
+    if (ok) { r.className = 'res'; r.innerHTML = '<b>Ready</b><span>Show a code inside the frame</span>'; }
+    else { r.className = 'res mal'; r.innerHTML = '<b>The QR reader didn’t load</b><span>Check your internet and reload the page</span>'; }
+  }
+  cargarLector(0);
   navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 1280 } }, audio: false })
     .then(function (s) { vid.srcObject = s; return vid.play(); })
     .then(function () { document.getElementById('msg').textContent = ''; ciclo(); })

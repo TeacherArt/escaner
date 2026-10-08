@@ -3,62 +3,93 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#120E26">
+<meta name="theme-color" content="#F1F0F4">
 <title>Camera scanner</title>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,600;0,800;0,900;1,400&display=swap" rel="stylesheet">
 <style>
+:root{--mor:#7C5CFF;--morRGB:124,92,255;--bg:#F1F0F4;--fg:#16171B;--muted:#5E616B;--card:#F8F7FB;
+--sh:10px 10px 24px rgba(40,24,90,.10),-10px -10px 24px rgba(255,255,255,.95);--ins:inset 4px 4px 10px rgba(40,24,90,.1),inset -4px -4px 10px rgba(255,255,255,.7)}
+:root.oscuro{--bg:#15141B;--fg:#F2F2F5;--muted:#A7A4B8;--card:#1E1C27;--sh:10px 10px 24px rgba(0,0,0,.5),-8px -8px 20px rgba(255,255,255,.035);--ins:inset 4px 4px 10px rgba(0,0,0,.45),inset -3px -3px 8px rgba(255,255,255,.04)}
 *{box-sizing:border-box}
-html,body{margin:0;min-height:100%;background:#120E26;color:#fff;font-family:Figtree,-apple-system,system-ui,sans-serif}
-button{font:inherit;color:inherit;border:0;cursor:pointer}
+[hidden]{display:none!important}
+html,body{margin:0;min-height:100%}
+body{font-family:Figtree,-apple-system,system-ui,sans-serif;color:var(--fg);background:radial-gradient(380px 300px at 100% 0%,rgba(var(--morRGB),.28),transparent 70%),radial-gradient(300px 260px at 0% 40%,rgba(var(--morRGB),.2),transparent 70%),radial-gradient(340px 300px at 100% 95%,rgba(var(--morRGB),.22),transparent 70%),var(--bg);background-attachment:fixed}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+button:focus-visible{outline:3px solid var(--mor);outline-offset:2px}
 .app{display:flex;flex-direction:column;gap:12px;min-height:100vh;padding:max(14px,env(safe-area-inset-top)) 16px 110px;max-width:620px;margin:0 auto}
-.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.top h1{font-size:20px;font-weight:800;margin:0}
-.top small{display:block;font-size:13px;opacity:.7;font-weight:600}
-.cuenta{min-width:46px;height:46px;padding:0 10px;border-radius:23px;background:#7C5CFF;display:grid;place-items:center;font-weight:900;font-size:18px}
-.modos{display:flex;background:rgba(255,255,255,.08);border-radius:999px;padding:4px}
-.modos button{flex:1;padding:10px;border-radius:999px;font-weight:700;font-size:14px;background:none;opacity:.7}
-.modos button.on{background:#fff;color:#120E26;opacity:1}
-.video{position:relative;border-radius:26px;overflow:hidden;background:#000;aspect-ratio:3/4;max-height:58vh;width:100%}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.top h1{font-size:30px;font-weight:900;letter-spacing:-1.2px;margin:0;line-height:1.05}
+.top small{display:block;font-size:13px;color:var(--muted);font-weight:600;margin-top:2px}
+.cuenta{flex:none;text-align:right}
+.cuenta b{display:block;font-size:30px;font-weight:900;letter-spacing:-1px;color:var(--mor);line-height:1}
+.cuenta span{font-size:12px;color:var(--muted);font-weight:600}
+.barra{height:8px;border-radius:8px;background:var(--bg);box-shadow:var(--ins);overflow:hidden}
+.barra i{display:block;height:100%;background:var(--mor);border-radius:8px;transition:width .3s}
+.modos{display:flex;background:var(--card);box-shadow:var(--ins);border-radius:999px;padding:4px}
+.modos button{flex:1;padding:9px;border-radius:999px;font-weight:700;font-size:14px;color:var(--muted)}
+.modos button.on{background:var(--fg);color:var(--bg)}
+.video{position:relative;border-radius:28px;overflow:hidden;background:#000;aspect-ratio:3/4;max-height:46vh;width:100%;box-shadow:var(--sh)}
 .video video,.video canvas{position:absolute;inset:0;width:100%;height:100%}
 .video video{object-fit:cover}
 .marco{position:absolute;inset:10%;border:3px solid rgba(255,255,255,.85);border-radius:28px;pointer-events:none}
-.msg{position:absolute;left:12px;right:12px;bottom:12px;text-align:center;font-size:14px;margin:0}
-.res{border-radius:20px;padding:12px 16px;background:rgba(255,255,255,.1);transition:background .15s}
-.res b{display:block;font-size:19px;font-weight:800}.res span{font-size:14px;opacity:.85}
-.res.ok{background:#1F9D62}.res.mal{background:#E5484D}
+.msg{position:absolute;left:12px;right:12px;bottom:12px;text-align:center;font-size:14px;margin:0;color:#fff}
+.especial{position:absolute;bottom:12px;left:12px;right:12px;text-align:center;padding:10px 12px;border-radius:16px;font-weight:800;color:#fff;font-size:14px}
+.res{border-radius:22px;padding:12px 16px;background:var(--card);box-shadow:var(--sh);transition:background .15s}
+.res b{display:block;font-size:19px;font-weight:800}.res span{font-size:14px;color:var(--muted)}
+.res.ok{background:#1F9D62;color:#fff}.res.ok span{color:rgba(255,255,255,.92)}
+.res.mal{background:#E5484D;color:#fff}.res.mal span{color:rgba(255,255,255,.92)}
 .clave{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.clave span{font-size:14px;opacity:.8;margin-right:4px}
-.clave button{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.12);font-weight:900;font-size:18px}
-.clave button.on{background:#1F9D62}
+.clave span{font-size:14px;color:var(--muted);margin-right:4px}
+.clave button{width:46px;height:46px;border-radius:14px;background:var(--card);box-shadow:var(--sh);font-weight:900;font-size:18px}
+.clave button.on{background:var(--mor);color:#fff;box-shadow:0 8px 18px rgba(var(--morRGB),.35)}
 .barras{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.barra{background:rgba(255,255,255,.08);border-radius:14px;padding:8px;text-align:center;font-weight:800}
-.barra.ok{background:#1F9D62}
-.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px}
-.tile{height:54px;border-radius:12px;background:rgba(255,255,255,.1);font-weight:800;font-size:15px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05}
-.tile small{font-size:9px;font-weight:600;opacity:.8;max-width:50px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.tile.on{background:#1F9D62}.tile.mal{background:#E5484D}.tile.med{background:#D99A0B}
-.tile i{position:absolute;top:-5px;right:-5px;min-width:20px;height:20px;border-radius:10px;background:#7C5CFF;font-style:normal;font-size:12px;display:grid;place-items:center}
-.nota{font-size:13px;opacity:.7;margin:0}
-.btns{display:flex;gap:10px;position:fixed;left:0;right:0;bottom:0;padding:12px 16px max(14px,env(safe-area-inset-bottom));background:linear-gradient(transparent,#120E26 35%);max-width:620px;margin:0 auto}
+.barritas{background:var(--card);box-shadow:var(--sh);border-radius:14px;padding:8px;text-align:center;font-weight:800}
+.barritas.ok{background:#1F9D62;color:#fff}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:8px}
+.tile{height:56px;border-radius:14px;background:var(--card);box-shadow:var(--sh);font-weight:800;font-size:15px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05}
+.tile small{font-size:9px;font-weight:600;color:var(--muted);max-width:50px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tile.on{background:#1F9D62;color:#fff}.tile.mal{background:#E5484D;color:#fff}.tile.med{background:#D99A0B;color:#fff}
+.tile.on small,.tile.mal small,.tile.med small{color:rgba(255,255,255,.9)}
+.tile i{position:absolute;top:-5px;right:-5px;min-width:20px;height:20px;border-radius:10px;background:var(--mor);color:#fff;font-style:normal;font-size:12px;display:grid;place-items:center}
+.nota{font-size:13px;color:var(--muted);margin:0}
+.fuera{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px}
+.fuera::-webkit-scrollbar{display:none}
+.pase{flex:none;display:flex;flex-direction:column;align-items:flex-start;padding:8px 12px;border-radius:16px;background:var(--card);box-shadow:var(--sh);font-size:13px}
+.pase b{font-size:16px;font-weight:900}
+.pase.tarde{background:#E5484D;color:#fff;animation:late 1s infinite alternate}
+@keyframes late{to{transform:scale(1.04)}}
+.flot{position:absolute;right:10px;display:grid;place-items:center;width:52px;height:52px;border-radius:26px;background:var(--card);box-shadow:0 6px 16px rgba(0,0,0,.35);font-size:23px;z-index:3}
+.flot.on{background:var(--mor);box-shadow:0 10px 22px rgba(var(--morRGB),.4)}
+.flot em{position:absolute;top:-4px;right:-4px;min-width:22px;height:22px;border-radius:11px;background:#E5484D;color:#fff;font-style:normal;font-size:12px;font-weight:800;display:grid;place-items:center}
+.btns{display:flex;gap:10px;position:fixed;left:0;right:0;bottom:0;padding:26px 16px max(14px,env(safe-area-inset-bottom));max-width:620px;margin:0 auto;z-index:6;background:linear-gradient(transparent,var(--bg) 45%)}
 .btns button{flex:1;padding:16px;border-radius:999px;font-weight:800;font-size:16px}
-.ok-btn{background:#7C5CFF}.sec{background:#2A2545}
+.ok-btn{background:var(--mor);color:#fff;box-shadow:0 10px 22px rgba(var(--morRGB),.35)}.sec{background:var(--card);box-shadow:var(--sh)}
+.ajuste{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.ajuste b{color:var(--fg);font-weight:800}
+.ajuste button{width:38px;height:38px;border-radius:12px;background:var(--card);box-shadow:var(--sh);font-weight:900;font-size:18px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="top"><div><h1 id="titulo">Scanner</h1><small id="sub"></small></div><div class="cuenta" id="cuenta">0</div></div>
+  <div class="top"><div><h1 id="titulo">Scanner</h1><small id="sub"></small></div><div class="cuenta" id="cuentaBox"><b id="cuenta">0</b><span id="faltan"></span></div></div>
+  <div class="barra" id="barraBox"><i id="barra" style="width:0"></i></div>
+  <div class="fuera" id="fuera"></div>
   <div class="modos" id="modos"><button data-m="tarjetas">Big cards</button><button data-m="qr">QR codes</button></div>
-  <div class="video"><video id="vid" playsinline muted></video><canvas id="capa"></canvas><div class="marco" id="marco"></div><p class="msg" id="msg">Starting camera…</p></div>
-  <div class="res" id="res"><b>Ready</b><span>Point the camera at the cards</span></div>
-  <div id="estados" class="clave" hidden><span>Mark as:</span><button data-e="c" class="on">✅</button><button data-e="i">🟡</button><button data-e="n">❌</button><span id="estNom" style="margin-left:6px;font-weight:700"></span></div>
+  <div id="estados" class="clave" hidden><span>Mark as:</span><button data-e="c" class="on">✅</button><button data-e="i">🟡</button><button data-e="n">❌</button><span id="estNom" style="margin-left:6px;font-weight:800;color:var(--fg)"></span></div>
   <div id="quiz" hidden>
     <div class="clave"><span>Correct answer:</span><button data-k="A">A</button><button data-k="B">B</button><button data-k="C">C</button><button data-k="D">D</button></div>
     <div class="barras" id="barras" style="margin-top:10px"></div>
   </div>
+  <div class="ajuste" id="ajusteBan" hidden>Bathroom time <button id="minMenos" aria-label="Less time">−</button><b id="minTxt"></b><button id="minMas" aria-label="More time">+</button></div>
+  <div class="video"><video id="vid" playsinline muted></video><canvas id="capa"></canvas><div class="marco" id="marco"></div><div class="especial" id="especial" hidden></div><p class="msg" id="msg">Starting camera…</p>
+    <button class="flot" id="btnBan" style="top:10px" aria-label="Bathroom pass">🚻<em id="banN" hidden></em></button>
+    <button class="flot" id="btnInc" style="top:72px" aria-label="Incident">⚠️<em id="incN" hidden></em></button></div>
+  <div class="res" id="res"><b>Ready</b><span>Point the camera at the cards</span></div>
   <p class="nota" id="ayuda">Green numbers are already scanned. Tap a number to add or remove it by hand.</p>
   <div class="tiles" id="tiles"></div>
-  <div class="btns"><button class="sec" id="cancelar">Cancel</button><button class="ok-btn" id="terminar">Finish and save</button></div>
 </div>
+<div class="btns"><button class="sec" id="cancelar">Cancel</button><button class="ok-btn" id="terminar">Finish and save</button></div>
 <script>
 /* Detector de tarjetas (marcadores 5x5) - sin dependencias */
 var MARCAS = (function () {
@@ -190,52 +221,80 @@ var MARCAS = (function () {
   return { detectar: detectar };
 })();
 
+
 (function () {
   var fuente = location.hash.length > 1 ? location.hash.slice(1) : location.search.slice(1);
   var q = new URLSearchParams(fuente);
   var modo = q.get('m') || 'asis', gid = q.get('g') || '', act = q.get('a') || '', ret = q.get('r') || '', t = q.get('t') || String(Date.now());
-  var nombres = { asis: 'Attendance', part: 'Participation', act: 'Turned in', quiz: 'Quiz' };
-  document.getElementById('titulo').textContent = nombres[modo] || 'Scanner';
-  document.getElementById('sub').textContent = (q.get('l') || '') + (q.get('x') ? ' · ' + q.get('x') : '') + (modo === 'part' ? ' · each scan adds 1' : '');
+  var col = q.get('col');
+  if (col && /^[0-9a-fA-F]{6}$/.test(col)) { var nc = parseInt(col, 16); document.documentElement.style.setProperty('--mor', '#' + col); document.documentElement.style.setProperty('--morRGB', (nc >> 16 & 255) + ',' + (nc >> 8 & 255) + ',' + (nc & 255)); }
+  if (q.get('osc') === '1') { document.documentElement.classList.add('oscuro'); document.querySelector('meta[name=theme-color]').content = '#15141B'; }
+  var $ = function (s) { return document.querySelector(s); };
+  var nombres = { asis: 'Attendance', part: 'Participation', act: 'Turned in', quiz: 'Quiz', sanitario: 'Bathroom pass', incidencia: 'Incident' };
+  $('#titulo').textContent = nombres[modo] || 'Scanner';
+  $('#sub').textContent = (q.get('l') || '') + (q.get('x') ? ' · ' + q.get('x') : '') + (modo === 'part' ? ' · each scan adds 1' : '');
   var porCodigo = {}, porTarjeta = {}, orden = [];
   (q.get('n') || '').split(',').forEach(function (p) {
     var x = p.split(':'); if (!x[0]) return;
     var al = { code: x[0], num: x[1], nom: x[2] ? decodeURIComponent(x[2]) : '', card: x[3] };
     porCodigo[al.code] = al; if (al.card) porTarjeta[al.card] = al; orden.push(al);
   });
-  var estable = {};
-  function otroGrupo(id) { var g = Math.floor(id / 60); return (Math.floor(g / 5) + 1) + '\u00b0' + 'ABCDE'.charAt(g % 5) + ' No. ' + (id % 60); }
-  var conteo = {}, respuesta = {}, ultimo = {}, total = 0, clave = '', estadoAl = {}, estadoSel = 'c';
+  var conteo = {}, respuesta = {}, ultimo = {}, total = 0, clave = '', estadoAl = {}, estadoSel = 'c', estable = {};
   var NOMEST = (q.get('est') || 'Complete|Incomplete|Missing').split('|'), LETRA = { c: 0, i: 1, n: 2 }, EMO = { c: '✅', i: '🟡', n: '❌' };
+  var soloEspecial = modo === 'sanitario' || modo === 'incidencia';
+  var MIN = Number(q.get('min')) || 5, pases = {}, especial = modo === 'sanitario' ? 'ban' : modo === 'incidencia' ? 'inc' : '', incid = [], regreso = null;
+  (q.get('ban') || '').split(',').forEach(function (p) { var x = p.split('.'); if (x[0] && porCodigo[x[0]]) pases[x[0]] = { s: Number(x[1]) || Date.now(), e: 0, previo: true }; });
+  function otroGrupo(id) { var g = Math.floor(id / 60); return (Math.floor(g / 5) + 1) + '°' + 'ABCDE'.charAt(g % 5) + ' No. ' + (id % 60); }
+  var metodo = 'tarjetas';
+  try { metodo = modo === 'quiz' ? 'tarjetas' : (localStorage.getItem('metodo') || 'tarjetas'); } catch (e) { }
+  if (modo === 'quiz') { $('#modos').hidden = true; $('#quiz').hidden = false; $('#ayuda').textContent = 'Students turn the card so their answer letter is on top. Answers update live.'; }
   if (modo === 'act') {
-    document.getElementById('estados').hidden = false;
-    document.getElementById('estNom').textContent = NOMEST[0];
-    document.querySelectorAll('#estados button').forEach(function (b) { b.onclick = function () { estadoSel = b.dataset.e; document.querySelectorAll('#estados button').forEach(function (x) { x.classList.toggle('on', x === b); }); document.getElementById('estNom').textContent = NOMEST[LETRA[estadoSel]]; }; });
+    $('#estados').hidden = false; $('#estNom').textContent = NOMEST[0];
+    $('#ayuda').textContent = 'Choose the status, then scan. Tap a number to change its status by hand.';
+    document.querySelectorAll('#estados button').forEach(function (b) { b.onclick = function () { estadoSel = b.dataset.e; document.querySelectorAll('#estados button').forEach(function (x) { x.classList.toggle('on', x === b); }); $('#estNom').textContent = NOMEST[LETRA[estadoSel]]; }; });
   }
-  var metodo = modo === 'quiz' ? 'tarjetas' : (localStorage.getItem('metodo') || 'tarjetas');
-  if (modo === 'quiz') { document.getElementById('modos').hidden = true; document.getElementById('quiz').hidden = false; document.getElementById('ayuda').textContent = 'Students turn the card so their answer letter is on top. Answers update live.'; }
-  if (modo === 'act') document.getElementById('ayuda').textContent = 'Choose the status above, then scan. Scan again with another status to change it, or tap a number to cycle it.';
+  if (modo === 'sanitario') $('#ayuda').textContent = 'Scan or tap a student when they leave, and again when they come back.';
+  if (modo === 'incidencia') $('#ayuda').textContent = 'Scan or tap the student. You will write the incident right after.';
+  if (soloEspecial) { $('#btnBan').hidden = true; $('#btnInc').hidden = true; $('#terminar').hidden = true; $('#cancelar').textContent = 'Back to the app'; }
   function ponerMetodo(m) {
-    metodo = m; localStorage.setItem('metodo', m);
+    metodo = m; try { localStorage.setItem('metodo', m); } catch (e) { }
     document.querySelectorAll('#modos button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === m); });
-    document.getElementById('marco').hidden = m === 'tarjetas';
-    aviso2('Ready', m === 'tarjetas' ? 'Point the camera at the cards, several at once is fine' : 'Show a QR code inside the frame');
+    $('#marco').hidden = m === 'tarjetas';
   }
   document.querySelectorAll('#modos button').forEach(function (b) { b.onclick = function () { ponerMetodo(b.dataset.m); }; });
   document.querySelectorAll('#quiz .clave button').forEach(function (b) { b.onclick = function () { clave = clave === b.dataset.k ? '' : b.dataset.k; document.querySelectorAll('#quiz .clave button').forEach(function (x) { x.classList.toggle('on', x.dataset.k === clave); }); pintar(); }; });
-  var tiles = document.getElementById('tiles');
+  function cambiarMin(d) { MIN = Math.max(1, Math.min(30, MIN + d)); $('#minTxt').textContent = MIN + ' min'; pintarPases(); }
+  $('#minMenos').onclick = function () { cambiarMin(-1); }; $('#minMas').onclick = function () { cambiarMin(1); };
+  $('#minTxt').textContent = MIN + ' min';
+  function ponerEspecial(e) {
+    if (soloEspecial) e = modo === 'sanitario' ? 'ban' : 'inc';
+    especial = e;
+    var box = $('#especial');
+    $('#btnBan').classList.toggle('on', e === 'ban'); $('#btnInc').classList.toggle('on', e === 'inc');
+    $('#ajusteBan').hidden = e !== 'ban';
+    if (e === 'ban' && !soloEspecial) { box.hidden = false; box.style.background = 'var(--mor)'; box.textContent = '🚻 Scan the student who is leaving or coming back'; }
+    else if (e === 'inc' && !soloEspecial) { box.hidden = false; box.style.background = '#E5484D'; box.textContent = '⚠️ Scan the student for the incident'; }
+    else box.hidden = true;
+  }
+  $('#btnBan').onclick = function () { ponerEspecial(especial === 'ban' ? '' : 'ban'); };
+  $('#btnInc').onclick = function () { ponerEspecial(especial === 'inc' ? '' : 'inc'); };
+  var tiles = $('#tiles');
   function pintar() {
     tiles.innerHTML = '';
     var cuenta = { A: 0, B: 0, C: 0, D: 0 };
     orden.forEach(function (al) {
       var b = document.createElement('button'), c = al.code, r = respuesta[c];
-      var on = modo === 'quiz' ? !!r : !!conteo[c];
+      var on = modo === 'quiz' ? !!r : modo === 'sanitario' ? !!(pases[c] && !pases[c].e) : modo === 'incidencia' ? incid.indexOf(c) >= 0 : !!conteo[c];
       b.className = 'tile' + (on ? (modo === 'quiz' && clave && r !== clave ? ' mal' : ' on') : '');
-      b.innerHTML = '<span></span><small></small>'; b.firstChild.textContent = modo === 'quiz' && r ? al.num + ' ' + r : modo === 'act' && conteo[c] ? al.num + ' ' + EMO[estadoAl[c] || 'c'] : al.num; b.lastChild.textContent = al.nom;
+      b.innerHTML = '<span></span><small></small>';
+      b.firstChild.textContent = modo === 'quiz' && r ? al.num + ' ' + r : modo === 'act' && conteo[c] ? al.num + ' ' + EMO[estadoAl[c] || 'c'] : al.num;
+      b.lastChild.textContent = al.nom;
       if (modo === 'act' && conteo[c]) b.className = 'tile ' + (estadoAl[c] === 'n' ? 'mal' : estadoAl[c] === 'i' ? 'med' : 'on');
       if (modo === 'part' && conteo[c] > 1) { var i = document.createElement('i'); i.textContent = conteo[c]; b.appendChild(i); }
       if (r) cuenta[r]++;
       b.onclick = function () {
+        if (especial === 'ban') { alternarPase(al); return; }
+        if (especial === 'inc') { marcarIncidencia(al); return; }
         if (modo === 'quiz') { var o = ['A', 'B', 'C', 'D', undefined], k = o.indexOf(respuesta[c]); respuesta[c] = o[(k + 1) % 5]; if (!respuesta[c]) delete respuesta[c]; }
         else if (modo === 'act') { var o2 = ['c', 'i', 'n']; if (!conteo[c]) { conteo[c] = 1; estadoAl[c] = estadoSel; } else { var k2 = o2.indexOf(estadoAl[c]); if (k2 === 2) { delete conteo[c]; delete estadoAl[c]; } else estadoAl[c] = o2[k2 + 1]; } }
         else if (conteo[c] && modo !== 'part') delete conteo[c]; else conteo[c] = (conteo[c] || 0) + 1;
@@ -243,22 +302,68 @@ var MARCAS = (function () {
       };
       tiles.appendChild(b);
     });
-    if (modo === 'quiz') {
-      document.getElementById('barras').innerHTML = ['A', 'B', 'C', 'D'].map(function (k) { return '<div class="barra' + (clave === k ? ' ok' : '') + '">' + k + ' · ' + cuenta[k] + '</div>'; }).join('');
-    }
+    if (modo === 'quiz') $('#barras').innerHTML = ['A', 'B', 'C', 'D'].map(function (k) { return '<div class="barritas' + (clave === k ? ' ok' : '') + '">' + k + ' · ' + cuenta[k] + '</div>'; }).join('');
   }
   function actualizar() {
-    document.getElementById('cuenta').textContent = modo === 'quiz' ? Object.keys(respuesta).length + '/' + orden.length : modo === 'part' ? total : Object.keys(conteo).length;
-    pintar();
+    var n = orden.length, fuera = Object.keys(pases).filter(function (c) { return !pases[c].e; }).length;
+    var hechos = modo === 'quiz' ? Object.keys(respuesta).length : modo === 'part' ? total : modo === 'sanitario' ? fuera : Object.keys(conteo).length;
+    var conLista = modo === 'asis' || modo === 'act' || modo === 'quiz';
+    $('#cuentaBox').hidden = modo === 'incidencia';
+    $('#cuenta').textContent = conLista ? hechos + ' / ' + n : hechos;
+    $('#faltan').textContent = modo === 'part' ? 'participations' : modo === 'sanitario' ? 'out now' : modo === 'asis' ? (n - hechos) + ' not scanned' : modo === 'quiz' ? (n - hechos) + ' to answer' : (n - hechos) + ' left';
+    $('#barraBox').hidden = !conLista;
+    $('#barra').style.width = (n ? Math.min(100, hechos / n * 100) : 0) + '%';
+    pintar(); pintarPases();
   }
   var audio = null;
-  function sonar(ok) {
-    try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); var o = audio.createOscillator(), g = audio.createGain(); o.frequency.value = ok ? 880 : 220; g.gain.value = .08; o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + (ok ? .08 : .25)); } catch (e) { }
-    if (navigator.vibrate) navigator.vibrate(ok ? 30 : [80, 60, 80]);
+  function sonar(ok, largo) {
+    try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); var o = audio.createOscillator(), g = audio.createGain(); o.frequency.value = ok ? 880 : 220; g.gain.value = .08; o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + (largo ? .6 : ok ? .08 : .25)); } catch (e) { }
+    if (navigator.vibrate) navigator.vibrate(largo ? [200, 100, 200] : ok ? 30 : [80, 60, 80]);
   }
-  function aviso2(a, b, cls) { var r = document.getElementById('res'); r.className = 'res' + (cls ? ' ' + cls : ''); r.innerHTML = '<b></b><span></span>'; r.firstChild.textContent = a; r.lastChild.textContent = b || ''; }
+  function aviso2(a, b, cls) { var r = $('#res'); r.className = 'res' + (cls ? ' ' + cls : ''); r.innerHTML = '<b></b><span></span>'; r.firstChild.textContent = a; r.lastChild.textContent = b || ''; }
+  function mmss(ms) { var s = Math.max(0, Math.floor(ms / 1000)); return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
+  function alternarPase(al) {
+    var c = al.code, p = pases[c];
+    if (p && !p.e) { p.e = Date.now(); sonar(true); aviso2('No. ' + al.num + ' ' + al.nom + ' is back', 'Out for ' + mmss(p.e - p.s), 'ok'); }
+    else { pases[c] = { s: Date.now(), e: 0 }; sonar(true); aviso2('🚻 No. ' + al.num + ' ' + al.nom, 'Bathroom pass started · ' + MIN + ' min', 'ok'); }
+    if (!soloEspecial) ponerEspecial('');
+    actualizar();
+    if (modo === 'sanitario') { clearTimeout(regreso); regreso = setTimeout(function () { volver(false); }, 1500); }
+  }
+  function marcarIncidencia(al) {
+    var c = al.code;
+    if (incid.indexOf(c) < 0) incid.push(c);
+    sonar(true); aviso2('⚠️ No. ' + al.num + ' ' + al.nom, modo === 'incidencia' ? 'Opening the incident…' : 'You will write the incident when you finish', 'ok');
+    $('#incN').hidden = false; $('#incN').textContent = incid.length;
+    if (!soloEspecial) ponerEspecial('');
+    actualizar();
+    if (modo === 'incidencia') { clearTimeout(regreso); regreso = setTimeout(function () { volver(false); }, 700); }
+  }
+  function pintarPases() {
+    var ahora = Date.now(), activos = Object.keys(pases).filter(function (c) { return !pases[c].e; });
+    var box = $('#fuera'); box.innerHTML = '';
+    activos.forEach(function (c) {
+      var al = porCodigo[c], p = pases[c], ms = ahora - p.s, tarde = ms > MIN * 60000;
+      var b = document.createElement('button'); b.className = 'pase' + (tarde ? ' tarde' : '');
+      b.innerHTML = '<span></span><b></b>'; b.firstChild.textContent = '🚻 No. ' + al.num + ' ' + al.nom; b.lastChild.textContent = mmss(ms) + (tarde ? ' · late' : ' of ' + MIN + ':00');
+      b.setAttribute('aria-label', al.nom + ' is back');
+      b.onclick = function () { alternarPase(al); };
+      box.appendChild(b);
+      if (tarde && (!p.av || ahora - p.av > 60000)) { p.av = ahora; sonar(false, true); aviso2('⏰ ' + al.nom + ' is late', 'Out for ' + mmss(ms), 'mal'); }
+    });
+    var n = $('#banN'); n.hidden = !activos.length; n.textContent = activos.length;
+  }
+  setInterval(pintarPases, 1000);
   function registrar(al, resp) {
     var c = al.code, ahora = Date.now();
+    if (especial === 'ban') {
+      var pv = ultimo['b' + c]; ultimo['b' + c] = ahora; if (pv && ahora - pv < 4000) return;
+      ultimo[c] = ahora; alternarPase(al); return;
+    }
+    if (especial === 'inc') {
+      var pi = ultimo['i' + c]; ultimo['i' + c] = ahora; if (pi && ahora - pi < 4000) return;
+      ultimo[c] = ahora; marcarIncidencia(al); return;
+    }
     if (modo === 'quiz') {
       if (respuesta[c] !== resp) { respuesta[c] = resp; sonar(true); aviso2('No. ' + al.num + ' ' + al.nom, 'Answer ' + resp, 'ok'); actualizar(); }
       return;
@@ -278,10 +383,10 @@ var MARCAS = (function () {
   function leerQR(txt) {
     var c = String(txt).toUpperCase().replace(/[^A-Z0-9]/g, ''); if (!c) return;
     var al = porCodigo[c];
-    if (!al) { var ahora = Date.now(); if (!ultimo[c] || ahora - ultimo[c] > 2500) { ultimo[c] = ahora; sonar(false); aviso2('Not in this group', c, 'mal'); } return; }
+    if (!al) { var ahora = Date.now(); if (!ultimo['x' + c] || ahora - ultimo['x' + c] > 2500) { ultimo['x' + c] = ahora; sonar(false); aviso2('Not in this group', c, 'mal'); } return; }
     registrar(al);
   }
-  var vid = document.getElementById('vid'), capa = document.getElementById('capa'), cc = capa.getContext('2d');
+  var vid = $('#vid'), capa = $('#capa'), cc = capa.getContext('2d');
   var cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
   var etiquetas = {}, cuadro = 0;
   function dibujarEtiquetas(k) {
@@ -301,52 +406,66 @@ var MARCAS = (function () {
   }
   var PASOS = [[1, 960], [0.5, 720], [0.75, 900], [0.34, 600]];
   function ciclo() {
-    if (vid.readyState >= 2) {
-      var w = vid.videoWidth, h = vid.videoHeight;
-      if (metodo === 'tarjetas') {
-        var k = Math.min(1, 1280 / Math.max(w, h)); cv.width = Math.round(w * k); cv.height = Math.round(h * k);
-        cx.drawImage(vid, 0, 0, cv.width, cv.height);
-        var marcas = MARCAS.detectar(cx.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height, { minLado: 12, maxErr: 1 }), ahora = Date.now();
-        marcas.forEach(function (m) {
-          var e = estable[m.id];
-          if (e && ahora - e.t < 1200) { e.n++; e.t = ahora; } else { e = estable[m.id] = { n: 1, t: ahora }; }
-          var al = porTarjeta[String(m.id)];
-          if (!al) {
-            etiquetas[m.id] = { x: m.x, y: m.y, t: ahora, txt: 'Other group: ' + otroGrupo(m.id), color: '#E5484D' };
-            if (e.n === 2) { sonar(false); aviso2('Not in this group', otroGrupo(m.id), 'mal'); }
-            return;
+    try {
+      if (vid.readyState >= 2) {
+        var w = vid.videoWidth, h = vid.videoHeight;
+        if (metodo === 'tarjetas') {
+          var k = Math.min(1, 1280 / Math.max(w, h)); cv.width = Math.round(w * k); cv.height = Math.round(h * k);
+          cx.drawImage(vid, 0, 0, cv.width, cv.height);
+          var marcas = MARCAS.detectar(cx.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height, { minLado: 12, maxErr: 1 }), ahora = Date.now();
+          var soloId = null;
+          if (especial) {
+            var mayor = 0; soloId = -1;
+            marcas.forEach(function (m) {
+              if (!porTarjeta[String(m.id)]) return;
+              var q4 = m.esq, ar = 0;
+              for (var i4 = 0; i4 < 4; i4++) { var p1 = q4[i4], p2 = q4[(i4 + 1) % 4]; ar += p1[0] * p2[1] - p2[0] * p1[1]; }
+              ar = Math.abs(ar); if (ar > mayor) { mayor = ar; soloId = m.id; }
+            });
           }
-          if (e.n >= 2) registrar(al, m.resp);
-          etiquetas[m.id] = { x: m.x, y: m.y, t: ahora, txt: (al.nom || 'No. ' + al.num) + (modo === 'quiz' ? '  ' + m.resp : modo === 'act' && conteo[al.code] ? '  ' + EMO[estadoAl[al.code] || 'c'] : ''), color: modo === 'quiz' && clave && m.resp !== clave ? '#E5484D' : (e.n >= 2 ? '#1F9D62' : '#D99A0B') };
-        });
-        dibujarEtiquetas(k);
-      } else {
-        etiquetas = {}; dibujarEtiquetas(1);
-        if (window.jsQR) {
-          var paso = PASOS[cuadro % PASOS.length]; cuadro++;
-          var lado = Math.min(w, h) * paso[0], kk = Math.min(1, paso[1] / lado);
-          cv.width = Math.round(lado * kk); cv.height = cv.width;
-          cx.drawImage(vid, (w - lado) / 2, (h - lado) / 2, lado, lado, 0, 0, cv.width, cv.height);
-          var r = jsQR(cx.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height, { inversionAttempts: 'dontInvert' });
-          if (r && r.data) leerQR(r.data);
+          marcas.forEach(function (m) {
+            var e = estable[m.id];
+            if (e && ahora - e.t < 1200) { e.n++; e.t = ahora; } else { e = estable[m.id] = { n: 1, t: ahora }; }
+            var al = porTarjeta[String(m.id)];
+            if (!al) {
+              etiquetas[m.id] = { x: m.x, y: m.y, t: ahora, txt: 'Other group: ' + otroGrupo(m.id), color: '#E5484D' };
+              if (e.n === 2) { sonar(false); aviso2('Not in this group', otroGrupo(m.id), 'mal'); }
+              return;
+            }
+            if (e.n >= 2 && (soloId === null || soloId === m.id)) registrar(al, m.resp);
+            var extra = pases[al.code] && !pases[al.code].e ? '  🚻' : modo === 'quiz' ? '  ' + m.resp : modo === 'act' && conteo[al.code] ? '  ' + EMO[estadoAl[al.code] || 'c'] : '';
+            etiquetas[m.id] = { x: m.x, y: m.y, t: ahora, txt: (al.nom || 'No. ' + al.num) + extra, color: modo === 'quiz' && clave && m.resp !== clave ? '#E5484D' : (e.n >= 2 ? '#1F9D62' : '#D99A0B') };
+          });
+          dibujarEtiquetas(k);
+        } else {
+          etiquetas = {}; dibujarEtiquetas(1);
+          if (window.jsQR) {
+            var paso = PASOS[cuadro % PASOS.length]; cuadro++;
+            var lado = Math.min(w, h) * paso[0], kk = Math.min(1, paso[1] / lado);
+            cv.width = Math.round(lado * kk); cv.height = cv.width;
+            cx.drawImage(vid, (w - lado) / 2, (h - lado) / 2, lado, lado, 0, 0, cv.width, cv.height);
+            var r = jsQR(cx.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height, { inversionAttempts: 'dontInvert' });
+            if (r && r.data) leerQR(r.data);
+          }
         }
       }
-    }
+    } catch (err) { }
     setTimeout(ciclo, metodo === 'tarjetas' ? 40 : 70);
   }
   var FUENTES = ['https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js', 'https://unpkg.com/jsqr@1.4.0/dist/jsQR.js', 'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js'];
   (function cargarQR(i) { if (window.jsQR || i >= FUENTES.length) return; var sc = document.createElement('script'); sc.src = FUENTES[i]; sc.onerror = function () { cargarQR(i + 1); }; document.head.appendChild(sc); })(0);
-  function zoomCamara(track) {
-    try { var cap = track.getCapabilities ? track.getCapabilities() : {}; if (cap.focusMode && cap.focusMode.indexOf('continuous') >= 0) track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(function () { }); } catch (e) { }
-  }
   navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false })
-    .then(function (s) { vid.srcObject = s; zoomCamara(s.getVideoTracks()[0]); return vid.play(); })
-    .then(function () { document.getElementById('msg').textContent = ''; ciclo(); })
-    .catch(function () { document.getElementById('msg').textContent = 'Allow the camera for this page in your browser settings, then reload.'; });
+    .then(function (s) { vid.srcObject = s; return vid.play(); })
+    .then(function () { $('#msg').textContent = ''; ciclo(); })
+    .catch(function () { $('#msg').textContent = 'Allow the camera for this page in your browser settings, then reload.'; });
   function volver(conDatos) {
     if (!ret) { alert('Open this page from your app.'); return; }
-    var url = ret;
-    if (conDatos) {
+    var url = ret, extra = [];
+    var bs = Object.keys(pases).filter(function (c) { return !pases[c].previo || pases[c].e; }).map(function (c) { return c + '.' + pases[c].s + '.' + (pases[c].e || 0); });
+    if (bs.length) extra.push('sanitario=' + bs.join(','));
+    if (incid.length) extra.push('incidencias=' + incid.join(','));
+    var p = [];
+    if (conDatos && !soloEspecial) {
       var cods = [];
       if (modo === 'quiz') {
         if (!clave) { alert('Choose the correct answer first (A, B, C or D).'); return; }
@@ -354,13 +473,16 @@ var MARCAS = (function () {
         Object.keys(respuesta).forEach(function (c) { cods.push(c + '.' + respuesta[c]); });
       } else if (modo === 'act') Object.keys(conteo).forEach(function (c) { cods.push(c + '.' + (estadoAl[c] || 'c')); });
       else Object.keys(conteo).forEach(function (c) { for (var i = 0; i < conteo[c]; i++) cods.push(c); });
-      url += (ret.indexOf('?') >= 0 ? '&' : '?') + 'escaneo=' + modo + '&grupo=' + encodeURIComponent(gid) + (act ? '&actividad=' + encodeURIComponent(act) : '') + '&marca=' + t + '&codigos=' + cods.join(',');
-    }
+      p.push('escaneo=' + modo, 'grupo=' + encodeURIComponent(gid), 'marca=' + t, 'codigos=' + cods.join(','));
+      if (act) p.push('actividad=' + encodeURIComponent(act));
+    } else if (extra.length) p.push('escaneo=extra', 'grupo=' + encodeURIComponent(gid), 'marca=' + t);
+    p = p.concat(extra);
+    if (p.length) url += (ret.indexOf('?') >= 0 ? '&' : '?') + p.join('&');
     location.href = url;
   }
-  document.getElementById('terminar').onclick = function () { volver(true); };
-  document.getElementById('cancelar').onclick = function () { volver(false); };
-  ponerMetodo(metodo); actualizar();
+  $('#terminar').onclick = function () { volver(true); };
+  $('#cancelar').onclick = function () { clearTimeout(regreso); volver(false); };
+  ponerMetodo(metodo); ponerEspecial(especial); actualizar();
 })();
 </script>
 </body>

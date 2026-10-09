@@ -42,6 +42,7 @@ button:focus-visible{outline:3px solid var(--mor);outline-offset:2px}
 .clave span{font-size:14px;color:var(--muted);margin-right:4px}
 .clave button{width:46px;height:46px;border-radius:14px;background:var(--card);box-shadow:var(--sh);font-weight:900;font-size:18px}
 .clave button.on{background:var(--mor);color:#fff;box-shadow:0 8px 18px rgba(var(--morRGB),.35)}
+#notas button{width:auto;min-width:46px;padding:0 10px}#medio.on{background:#1F9D62}
 .barras{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .barritas{background:var(--card);box-shadow:var(--sh);border-radius:14px;padding:8px;text-align:center;font-weight:800}
 .barritas.ok{background:#1F9D62;color:#fff}
@@ -81,7 +82,9 @@ button:focus-visible{outline:3px solid var(--mor);outline-offset:2px}
     <div class="clave"><span>Correct answer:</span><button data-k="A">A</button><button data-k="B">B</button><button data-k="C">C</button><button data-k="D">D</button></div>
     <div class="barras" id="barras" style="margin-top:10px"></div>
   </div>
-  <div class="ajuste" id="ajusteBan" hidden>Bathroom time <button id="minMenos" aria-label="Less time">−</button><b id="minTxt"></b><button id="minMas" aria-label="More time">+</button></div>
+  <div class="ajuste" id="ajusteBan" hidden>Time <button id="minMenos" aria-label="Less time">−</button><b id="minTxt"></b><button id="minMas" aria-label="More time">+</button>
+    <span style="margin-left:8px">Max out</span> <button id="maxMenos" aria-label="Fewer students out">−</button><b id="maxTxt"></b><button id="maxMas" aria-label="More students out">+</button></div>
+  <div id="notas" class="clave" hidden><span>Grade:</span><button data-v="5">5</button><button data-v="6">6</button><button data-v="7">7</button><button data-v="8">8</button><button data-v="9" class="on">9</button><button data-v="10">10</button><button data-v="+" id="medio" aria-label="Add half point">+½</button></div>
   <div class="video"><video id="vid" playsinline muted></video><canvas id="capa"></canvas><div class="marco" id="marco"></div><div class="especial" id="especial" hidden></div><p class="msg" id="msg">Starting camera…</p>
     <button class="flot" id="btnBan" style="top:10px" aria-label="Bathroom pass">🚻<em id="banN" hidden></em></button>
     <button class="flot" id="btnInc" style="top:72px" aria-label="Incident">⚠️<em id="incN" hidden></em></button></div>
@@ -230,7 +233,7 @@ var MARCAS = (function () {
   if (col && /^[0-9a-fA-F]{6}$/.test(col)) { var nc = parseInt(col, 16); document.documentElement.style.setProperty('--mor', '#' + col); document.documentElement.style.setProperty('--morRGB', (nc >> 16 & 255) + ',' + (nc >> 8 & 255) + ',' + (nc & 255)); }
   if (q.get('osc') === '1') { document.documentElement.classList.add('oscuro'); document.querySelector('meta[name=theme-color]').content = '#15141B'; }
   var $ = function (s) { return document.querySelector(s); };
-  var nombres = { asis: 'Attendance', part: 'Participation', act: 'Turned in', quiz: 'Quiz', sanitario: 'Bathroom pass', incidencia: 'Incident' };
+  var nombres = { asis: 'Attendance', part: 'Participation', act: 'Turned in', num: 'Grades', quiz: 'Quiz', sanitario: 'Bathroom pass', incidencia: 'Incident', equipo: 'New team' };
   $('#titulo').textContent = nombres[modo] || 'Scanner';
   $('#sub').textContent = (q.get('l') || '') + (q.get('x') ? ' · ' + q.get('x') : '') + (modo === 'part' ? ' · each scan adds 1' : '');
   var porCodigo = {}, porTarjeta = {}, orden = [];
@@ -242,7 +245,7 @@ var MARCAS = (function () {
   var conteo = {}, respuesta = {}, ultimo = {}, total = 0, clave = '', estadoAl = {}, estadoSel = 'c', estable = {};
   var NOMEST = (q.get('est') || 'Complete|Incomplete|Missing').split('|'), LETRA = { c: 0, i: 1, n: 2 }, EMO = { c: '✅', i: '🟡', n: '❌' };
   var soloEspecial = modo === 'sanitario' || modo === 'incidencia';
-  var MIN = Number(q.get('min')) || 5, pases = {}, especial = modo === 'sanitario' ? 'ban' : modo === 'incidencia' ? 'inc' : '', incid = [], regreso = null;
+  var MIN = Number(q.get('min')) || 5, MAX = Number(q.get('max')) || 2, LIM0 = MIN + '.' + MAX, nota = 9, medio = false, notaAl = {}, pases = {}, especial = modo === 'sanitario' ? 'ban' : modo === 'incidencia' ? 'inc' : '', incid = [], regreso = null;
   (q.get('ban') || '').split(',').forEach(function (p) { var x = p.split('.'); if (x[0] && porCodigo[x[0]]) pases[x[0]] = { s: Number(x[1]) || Date.now(), e: 0, previo: true }; });
   function otroGrupo(id) { var g = Math.floor(id / 60); return (Math.floor(g / 5) + 1) + '°' + 'ABCDE'.charAt(g % 5) + ' No. ' + (id % 60); }
   var metodo = 'tarjetas';
@@ -253,9 +256,20 @@ var MARCAS = (function () {
     $('#ayuda').textContent = 'Choose the status, then scan. Tap a number to change its status by hand.';
     document.querySelectorAll('#estados button').forEach(function (b) { b.onclick = function () { estadoSel = b.dataset.e; document.querySelectorAll('#estados button').forEach(function (x) { x.classList.toggle('on', x === b); }); $('#estNom').textContent = NOMEST[LETRA[estadoSel]]; }; });
   }
-  if (modo === 'sanitario') $('#ayuda').textContent = 'Scan or tap a student when they leave, and again when they come back.';
+  if (modo === 'num') {
+    $('#notas').hidden = false;
+    $('#ayuda').textContent = 'Choose the grade, then scan. Tap a number to give it the selected grade; tap again to remove it.';
+    document.querySelectorAll('#notas button').forEach(function (b) { b.onclick = function () {
+      if (b.dataset.v === '+') { medio = !medio; b.classList.toggle('on', medio); }
+      else { nota = Number(b.dataset.v); document.querySelectorAll('#notas button:not(#medio)').forEach(function (x) { x.classList.toggle('on', x === b); }); }
+    }; });
+  }
+  if (modo === 'equipo') $('#ayuda').textContent = 'Scan everyone on the team, or tap their numbers. Then tap Finish.';
+  if (modo === 'sanitario') $('#ayuda').textContent = 'Scan a student when they leave and again when they come back. The scanner stays open: tap Back to the app when you finish.';
   if (modo === 'incidencia') $('#ayuda').textContent = 'Scan or tap the student. You will write the incident right after.';
   if (soloEspecial) { $('#btnBan').hidden = true; $('#btnInc').hidden = true; $('#terminar').hidden = true; $('#cancelar').textContent = 'Back to the app'; }
+  if (modo === 'sanitario') { $('#cancelar').hidden = true; $('#terminar').hidden = false; $('#terminar').textContent = 'Done · back to the app'; }
+  if (modo === 'equipo') $('#terminar').textContent = 'Create team';
   function ponerMetodo(m) {
     metodo = m; try { localStorage.setItem('metodo', m); } catch (e) { }
     document.querySelectorAll('#modos button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === m); });
@@ -264,6 +278,9 @@ var MARCAS = (function () {
   document.querySelectorAll('#modos button').forEach(function (b) { b.onclick = function () { ponerMetodo(b.dataset.m); }; });
   document.querySelectorAll('#quiz .clave button').forEach(function (b) { b.onclick = function () { clave = clave === b.dataset.k ? '' : b.dataset.k; document.querySelectorAll('#quiz .clave button').forEach(function (x) { x.classList.toggle('on', x.dataset.k === clave); }); pintar(); }; });
   function cambiarMin(d) { MIN = Math.max(1, Math.min(30, MIN + d)); $('#minTxt').textContent = MIN + ' min'; pintarPases(); }
+  function cambiarMax(d) { MAX = Math.max(1, Math.min(10, MAX + d)); $('#maxTxt').textContent = MAX; }
+  $('#maxMenos').onclick = function () { cambiarMax(-1); }; $('#maxMas').onclick = function () { cambiarMax(1); }; $('#maxTxt').textContent = MAX;
+  function valorNota() { return Math.min(10, nota + (medio ? 0.5 : 0)); }
   $('#minMenos').onclick = function () { cambiarMin(-1); }; $('#minMas').onclick = function () { cambiarMin(1); };
   $('#minTxt').textContent = MIN + ' min';
   function ponerEspecial(e) {
@@ -284,10 +301,10 @@ var MARCAS = (function () {
     var cuenta = { A: 0, B: 0, C: 0, D: 0 };
     orden.forEach(function (al) {
       var b = document.createElement('button'), c = al.code, r = respuesta[c];
-      var on = modo === 'quiz' ? !!r : modo === 'sanitario' ? !!(pases[c] && !pases[c].e) : modo === 'incidencia' ? incid.indexOf(c) >= 0 : !!conteo[c];
+      var on = modo === 'num' ? notaAl[c] != null : modo === 'quiz' ? !!r : modo === 'sanitario' ? !!(pases[c] && !pases[c].e) : modo === 'incidencia' ? incid.indexOf(c) >= 0 : !!conteo[c];
       b.className = 'tile' + (on ? (modo === 'quiz' && clave && r !== clave ? ' mal' : ' on') : '');
       b.innerHTML = '<span></span><small></small>';
-      b.firstChild.textContent = modo === 'quiz' && r ? al.num + ' ' + r : modo === 'act' && conteo[c] ? al.num + ' ' + EMO[estadoAl[c] || 'c'] : al.num;
+      b.firstChild.textContent = modo === 'num' && notaAl[c] != null ? al.num + ' · ' + notaAl[c] : modo === 'quiz' && r ? al.num + ' ' + r : modo === 'act' && conteo[c] ? al.num + ' ' + EMO[estadoAl[c] || 'c'] : al.num;
       b.lastChild.textContent = al.nom;
       if (modo === 'act' && conteo[c]) b.className = 'tile ' + (estadoAl[c] === 'n' ? 'mal' : estadoAl[c] === 'i' ? 'med' : 'on');
       if (modo === 'part' && conteo[c] > 1) { var i = document.createElement('i'); i.textContent = conteo[c]; b.appendChild(i); }
@@ -295,6 +312,7 @@ var MARCAS = (function () {
       b.onclick = function () {
         if (especial === 'ban') { alternarPase(al); return; }
         if (especial === 'inc') { marcarIncidencia(al); return; }
+        if (modo === 'num') { if (notaAl[c] === valorNota()) delete notaAl[c]; else notaAl[c] = valorNota(); actualizar(); return; }
         if (modo === 'quiz') { var o = ['A', 'B', 'C', 'D', undefined], k = o.indexOf(respuesta[c]); respuesta[c] = o[(k + 1) % 5]; if (!respuesta[c]) delete respuesta[c]; }
         else if (modo === 'act') { var o2 = ['c', 'i', 'n']; if (!conteo[c]) { conteo[c] = 1; estadoAl[c] = estadoSel; } else { var k2 = o2.indexOf(estadoAl[c]); if (k2 === 2) { delete conteo[c]; delete estadoAl[c]; } else estadoAl[c] = o2[k2 + 1]; } }
         else if (conteo[c] && modo !== 'part') delete conteo[c]; else conteo[c] = (conteo[c] || 0) + 1;
@@ -306,11 +324,11 @@ var MARCAS = (function () {
   }
   function actualizar() {
     var n = orden.length, fuera = Object.keys(pases).filter(function (c) { return !pases[c].e; }).length;
-    var hechos = modo === 'quiz' ? Object.keys(respuesta).length : modo === 'part' ? total : modo === 'sanitario' ? fuera : Object.keys(conteo).length;
-    var conLista = modo === 'asis' || modo === 'act' || modo === 'quiz';
+    var hechos = modo === 'num' ? Object.keys(notaAl).length : modo === 'quiz' ? Object.keys(respuesta).length : modo === 'part' ? total : modo === 'sanitario' ? fuera : Object.keys(conteo).length;
+    var conLista = modo === 'asis' || modo === 'act' || modo === 'quiz' || modo === 'num';
     $('#cuentaBox').hidden = modo === 'incidencia';
     $('#cuenta').textContent = conLista ? hechos + ' / ' + n : hechos;
-    $('#faltan').textContent = modo === 'part' ? 'participations' : modo === 'sanitario' ? 'out now' : modo === 'asis' ? (n - hechos) + ' not scanned' : modo === 'quiz' ? (n - hechos) + ' to answer' : (n - hechos) + ' left';
+    $('#faltan').textContent = modo === 'equipo' ? 'on this team' : modo === 'part' ? 'participations' : modo === 'sanitario' ? 'out of ' + MAX + ' allowed' : modo === 'asis' ? (n - hechos) + ' not scanned' : modo === 'quiz' ? (n - hechos) + ' to answer' : (n - hechos) + ' left';
     $('#barraBox').hidden = !conLista;
     $('#barra').style.width = (n ? Math.min(100, hechos / n * 100) : 0) + '%';
     pintar(); pintarPases();
@@ -325,10 +343,13 @@ var MARCAS = (function () {
   function alternarPase(al) {
     var c = al.code, p = pases[c];
     if (p && !p.e) { p.e = Date.now(); sonar(true); aviso2('No. ' + al.num + ' ' + al.nom + ' is back', 'Out for ' + mmss(p.e - p.s), 'ok'); }
-    else { pases[c] = { s: Date.now(), e: 0 }; sonar(true); aviso2('🚻 No. ' + al.num + ' ' + al.nom, 'Bathroom pass started · ' + MIN + ' min', 'ok'); }
+    else {
+      var fueraYa = Object.keys(pases).filter(function (k) { return !pases[k].e; }).length;
+      if (fueraYa >= MAX) { sonar(false); aviso2('Bathroom is full (' + fueraYa + ' of ' + MAX + ')', 'No. ' + al.num + ' ' + al.nom + ' has to wait until someone comes back', 'mal'); return; }
+      pases[c] = { s: Date.now(), e: 0 }; sonar(true); aviso2('🚻 No. ' + al.num + ' ' + al.nom, 'Bathroom pass started · ' + MIN + ' min · ' + (fueraYa + 1) + ' of ' + MAX + ' out', 'ok');
+    }
     if (!soloEspecial) ponerEspecial('');
     actualizar();
-    if (modo === 'sanitario') { clearTimeout(regreso); regreso = setTimeout(function () { volver(false); }, 1500); }
   }
   function marcarIncidencia(al) {
     var c = al.code;
@@ -370,6 +391,10 @@ var MARCAS = (function () {
     }
     var previo = ultimo[c]; ultimo[c] = ahora;
     if (previo && ahora - previo < (modo === 'part' ? 4000 : 2500)) return;
+    if (modo === 'num') {
+      if (notaAl[c] === valorNota()) return;
+      notaAl[c] = valorNota(); sonar(true); aviso2('No. ' + al.num + ' ' + al.nom, 'Grade ' + notaAl[c], 'ok'); actualizar(); return;
+    }
     if (modo === 'act') {
       if (conteo[c] && estadoAl[c] === estadoSel) return;
       conteo[c] = 1; estadoAl[c] = estadoSel; sonar(true);
@@ -433,7 +458,7 @@ var MARCAS = (function () {
               return;
             }
             if (e.n >= 2 && (soloId === null || soloId === m.id)) registrar(al, m.resp);
-            var extra = pases[al.code] && !pases[al.code].e ? '  🚻' : modo === 'quiz' ? '  ' + m.resp : modo === 'act' && conteo[al.code] ? '  ' + EMO[estadoAl[al.code] || 'c'] : '';
+            var extra = pases[al.code] && !pases[al.code].e ? '  🚻' : modo === 'num' && notaAl[al.code] != null ? '  ' + notaAl[al.code] : modo === 'quiz' ? '  ' + m.resp : modo === 'act' && conteo[al.code] ? '  ' + EMO[estadoAl[al.code] || 'c'] : '';
             etiquetas[m.id] = { x: m.x, y: m.y, t: ahora, txt: (al.nom || 'No. ' + al.num) + extra, color: modo === 'quiz' && clave && m.resp !== clave ? '#E5484D' : (e.n >= 2 ? '#1F9D62' : '#D99A0B') };
           });
           dibujarEtiquetas(k);
@@ -464,6 +489,7 @@ var MARCAS = (function () {
     var bs = Object.keys(pases).filter(function (c) { return !pases[c].previo || pases[c].e; }).map(function (c) { return c + '.' + pases[c].s + '.' + (pases[c].e || 0); });
     if (bs.length) extra.push('sanitario=' + bs.join(','));
     if (incid.length) extra.push('incidencias=' + incid.join(','));
+    if (MIN + '.' + MAX !== LIM0) extra.push('limites=' + MIN + '.' + MAX);
     var p = [];
     if (conDatos && !soloEspecial) {
       var cods = [];
@@ -471,7 +497,8 @@ var MARCAS = (function () {
         if (!clave) { alert('Choose the correct answer first (A, B, C or D).'); return; }
         cods.push('KEY.' + clave);
         Object.keys(respuesta).forEach(function (c) { cods.push(c + '.' + respuesta[c]); });
-      } else if (modo === 'act') Object.keys(conteo).forEach(function (c) { cods.push(c + '.' + (estadoAl[c] || 'c')); });
+      } else if (modo === 'num') Object.keys(notaAl).forEach(function (c) { cods.push(c + '.' + Math.round(notaAl[c] * 10)); });
+      else if (modo === 'act') Object.keys(conteo).forEach(function (c) { cods.push(c + '.' + (estadoAl[c] || 'c')); });
       else Object.keys(conteo).forEach(function (c) { for (var i = 0; i < conteo[c]; i++) cods.push(c); });
       p.push('escaneo=' + modo, 'grupo=' + encodeURIComponent(gid), 'marca=' + t, 'codigos=' + cods.join(','));
       if (act) p.push('actividad=' + encodeURIComponent(act));

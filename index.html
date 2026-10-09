@@ -51,6 +51,7 @@ button:focus-visible{outline:3px solid var(--mor);outline-offset:2px}
 .tile small{font-size:9px;font-weight:600;color:var(--muted);max-width:50px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .tile.on{background:#1F9D62;color:#fff}.tile.mal{background:#E5484D;color:#fff}.tile.med{background:#D99A0B;color:#fff}
 .tile.on small,.tile.mal small,.tile.med small{color:rgba(255,255,255,.9)}
+.tile.aus{opacity:.55;box-shadow:none;border:2px dashed #E5484D}.tile.aus small{color:#E5484D;font-weight:800}
 .tile i{position:absolute;top:-5px;right:-5px;min-width:20px;height:20px;border-radius:10px;background:var(--mor);color:#fff;font-style:normal;font-size:12px;display:grid;place-items:center}
 .nota{font-size:13px;color:var(--muted);margin:0}
 .fuera{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px}
@@ -242,6 +243,7 @@ var MARCAS = (function () {
     var al = { code: x[0], num: x[1], nom: x[2] ? decodeURIComponent(x[2]) : '', card: x[3] };
     porCodigo[al.code] = al; if (al.card) porTarjeta[al.card] = al; orden.push(al);
   });
+  var AUS = {}; (q.get('aus') || '').split(',').forEach(function (c) { if (c) AUS[c] = 1; });
   var conteo = {}, respuesta = {}, ultimo = {}, total = 0, clave = '', estadoAl = {}, estadoSel = 'c', estable = {};
   var NOMEST = (q.get('est') || 'Complete|Incomplete|Missing').split('|'), LETRA = { c: 0, i: 1, n: 2 }, EMO = { c: '✅', i: '🟡', n: '❌' };
   var soloEspecial = modo === 'sanitario' || modo === 'incidencia';
@@ -305,7 +307,8 @@ var MARCAS = (function () {
       b.className = 'tile' + (on ? (modo === 'quiz' && clave && r !== clave ? ' mal' : ' on') : '');
       b.innerHTML = '<span></span><small></small>';
       b.firstChild.textContent = modo === 'num' && notaAl[c] != null ? al.num + ' · ' + notaAl[c] : modo === 'quiz' && r ? al.num + ' ' + r : modo === 'act' && conteo[c] ? al.num + ' ' + EMO[estadoAl[c] || 'c'] : al.num;
-      b.lastChild.textContent = al.nom;
+      b.lastChild.textContent = AUS[c] && !on ? 'Absent' : al.nom;
+      if (AUS[c] && !on) b.className += ' aus';
       if (modo === 'act' && conteo[c]) b.className = 'tile ' + (estadoAl[c] === 'n' ? 'mal' : estadoAl[c] === 'i' ? 'med' : 'on');
       if (modo === 'part' && conteo[c] > 1) { var i = document.createElement('i'); i.textContent = conteo[c]; b.appendChild(i); }
       if (r) cuenta[r]++;
@@ -393,12 +396,12 @@ var MARCAS = (function () {
     if (previo && ahora - previo < (modo === 'part' ? 4000 : 2500)) return;
     if (modo === 'num') {
       if (notaAl[c] === valorNota()) return;
-      notaAl[c] = valorNota(); sonar(true); aviso2('No. ' + al.num + ' ' + al.nom, 'Grade ' + notaAl[c], 'ok'); actualizar(); return;
+      notaAl[c] = valorNota(); sonar(true); aviso2('No. ' + al.num + ' ' + al.nom, 'Grade ' + notaAl[c] + (AUS[c] ? ' · was absent that day' : ''), 'ok'); actualizar(); return;
     }
     if (modo === 'act') {
       if (conteo[c] && estadoAl[c] === estadoSel) return;
       conteo[c] = 1; estadoAl[c] = estadoSel; sonar(true);
-      aviso2('No. ' + al.num + ' ' + al.nom, EMO[estadoSel] + ' ' + NOMEST[LETRA[estadoSel]], 'ok'); actualizar(); return;
+      aviso2('No. ' + al.num + ' ' + al.nom, EMO[estadoSel] + ' ' + NOMEST[LETRA[estadoSel]] + (AUS[c] ? ' · was absent that day' : ''), 'ok'); actualizar(); return;
     }
     if (conteo[c] && modo !== 'part') return;
     conteo[c] = (conteo[c] || 0) + 1; total++; sonar(true);

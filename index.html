@@ -81,6 +81,48 @@ button:focus-visible{outline:3px solid var(--mor);outline-offset:2px}
 .eqs button{flex:none;padding:8px 12px;border-radius:14px;background:var(--card);box-shadow:var(--sh);font-weight:800;font-size:13px;text-align:left}
 .eqs button small{display:block;font-weight:600;color:var(--muted);font-size:11px}
 .tile i.neg{background:#E5484D}
+
+/* ===== Disposición ordenada ===== */
+.sec-t{font-size:12.5px;font-weight:800;color:var(--muted);margin:2px 2px -4px}
+.acc{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:8px}
+.acc[hidden]{display:none}
+.acc button,.acc-sel{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:64px;padding:8px 6px;border-radius:18px;background:var(--card);box-shadow:var(--sh);font-weight:800;font-size:13.5px;color:var(--fg);text-align:center}
+.acc button span,.acc-sel span{font-size:20px;line-height:1}
+.acc-sel{position:relative;overflow:hidden}
+.acc-sel select{width:100%;min-width:0;max-width:100%;padding:0;border:0;background:none;box-shadow:none;font:inherit;font-weight:800;font-size:13px;color:inherit;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none;text-overflow:ellipsis}
+.acc button.on,.acc-sel:has(select.on){background:var(--mor);color:#fff;box-shadow:0 8px 18px rgba(var(--morRGB),.35)}
+.acc select.on{background:none;box-shadow:none;color:#fff}
+.esp{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.esp[hidden]{display:none}
+.esp-b{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;border-radius:16px;background:var(--card);box-shadow:var(--sh);font-weight:800;font-size:13.5px;color:var(--fg)}
+.esp-b span{font-size:18px}
+.esp-b.on{background:var(--mor);color:#fff;box-shadow:0 8px 18px rgba(var(--morRGB),.35)}
+.esp-b em{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;border-radius:11px;background:#E5484D;color:#fff;font-style:normal;font-size:12px;font-weight:800;display:grid;place-items:center;padding:0 6px}
+.esp-b[hidden]{display:none}
+.modos{align-self:center;width:min(100%,320px)}
+.modos button{padding:7px;font-size:13px}
+#cant{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.unidad{display:grid;grid-template-columns:1fr 1fr;background:var(--card);box-shadow:var(--ins);border-radius:999px;padding:4px}
+.unidad[hidden]{display:none}
+.unidad button{padding:9px;border-radius:999px;font-weight:800;font-size:13.5px;color:var(--muted)}
+.unidad button.on{background:var(--mor);color:#fff}
+#cant button.pt{font-size:13px}
+#cant[hidden],#estados[hidden],#notas[hidden]{display:none}
+#cant span{grid-column:1/-1;margin:0}
+#cant button{width:auto}
+.fila2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fila2[hidden]{display:none}
+.fila2 button{min-height:44px}
+#estados{display:grid;grid-template-columns:auto repeat(3,1fr) auto;align-items:center}
+#estados button{width:auto}
+#notas{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+#notas span{grid-column:1/-1;margin:0}
+#notas button{width:auto}
+.ajuste{justify-content:center;flex-wrap:nowrap;gap:6px;font-size:13px}
+.ajuste button{width:34px;height:34px}
+.qnav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.qnav b{font-size:16px;font-weight:900}
+.qnav button{padding:9px 14px;border-radius:999px;background:var(--mor);color:#fff;font-weight:800;font-size:13.5px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -89,13 +131,17 @@ button:focus-visible{outline:3px solid var(--mor);outline-offset:2px}
   <div class="top"><div><h1 id="titulo">Scanner</h1><small id="sub"></small></div><div class="cuenta" id="cuentaBox"><b id="cuenta">0</b><span id="faltan"></span></div></div>
   <div class="barra" id="barraBox"><i id="barra" style="width:0"></i></div>
   <div class="fuera" id="fuera"></div>
-  <div class="acc" id="acc" hidden><button data-acc="asis">✋ Attendance</button><button data-acc="part">⭐ Points</button><select id="selAct" aria-label="Activity to scan"></select></div>
+  <div class="sec-t" id="accT" hidden>What are you scanning?</div>
+  <div class="acc" id="acc" hidden><button data-acc="asis"><span>✋</span>Attendance</button><button data-acc="part"><span>⭐</span>Participation</button><label class="acc-sel"><span>📝</span><select id="selAct" aria-label="Activity to scan"></select></label></div>
+  <div class="esp" id="esp"><button class="esp-b" id="btnBan" aria-label="Bathroom pass"><span>🚻</span>Bathroom pass<em id="banN" hidden></em></button><button class="esp-b" id="btnInc" aria-label="Incident"><span>⚠️</span>Incident<em id="incN" hidden></em></button></div>
   <div class="modos" id="modos"><button data-m="tarjetas">Big cards</button><button data-m="qr">QR codes</button></div>
-  <div id="cant" class="clave" hidden><span>Each scan or tap adds:</span><button data-q="1" class="on">+1</button><button data-q="2">+2</button><button data-q="3">+3</button><button data-q="5">+5</button><button data-q="-1" aria-label="Take away one">−1</button></div>
+  <div id="unidad" class="unidad" hidden><button data-u="1" class="on">Tenths · décimas</button><button data-u="10">Points · puntos</button></div>
+  <div id="cant" class="clave" hidden><span id="cantTx">Each scan or tap adds tenths:</span><button data-q="1" class="on">+1</button><button data-q="2">+2</button><button data-q="3">+3</button><button data-q="5">+5</button><button data-q="-1" aria-label="Take away one">−1</button></div>
   <div id="extraPart" class="fila2" hidden><button id="aTodos">+1 to everyone</button><button id="modoEq">👥 Team mode: off</button></div>
   <div id="equipos" class="eqs" hidden></div>
   <div id="estados" class="clave" hidden><span>Mark as:</span><button data-e="c" class="on">✅</button><button data-e="i">🟡</button><button data-e="n">❌</button><span id="estNom" style="margin-left:6px;font-weight:800;color:var(--fg)"></span></div>
   <div id="quiz" hidden>
+    <div class="qnav"><b id="qNum">Question 1</b><button id="qSig">Next question →</button></div>
     <div class="clave"><span>Correct answer:</span><button data-k="A">A</button><button data-k="B">B</button><button data-k="C">C</button><button data-k="D">D</button></div>
     <div class="barras" id="barras" style="margin-top:10px"></div>
   </div>
@@ -103,8 +149,7 @@ button:focus-visible{outline:3px solid var(--mor);outline-offset:2px}
     <span style="margin-left:8px">Max out</span> <button id="maxMenos" aria-label="Fewer students out">−</button><b id="maxTxt"></b><button id="maxMas" aria-label="More students out">+</button></div>
   <div id="notas" class="clave" hidden><span>Grade:</span><button data-v="5">5</button><button data-v="6">6</button><button data-v="7">7</button><button data-v="8">8</button><button data-v="9" class="on">9</button><button data-v="10">10</button><button data-v="+" id="medio" aria-label="Add half point">+½</button></div>
   <div class="video"><video id="vid" playsinline muted></video><canvas id="capa"></canvas><div class="marco" id="marco"></div><div class="especial" id="especial" hidden></div><p class="msg" id="msg">Starting camera…</p>
-    <button class="flot" id="btnBan" style="top:10px" aria-label="Bathroom pass">🚻<em id="banN" hidden></em></button>
-    <button class="flot" id="btnInc" style="top:72px" aria-label="Incident">⚠️<em id="incN" hidden></em></button></div>
+</div>
   <div class="res" id="res"><b>Ready</b><span>Point the camera at the cards</span></div>
   <p class="nota" id="ayuda">Green numbers are already scanned. Tap a number to add or remove it by hand.</p>
   <div class="tiles" id="tiles"></div>
@@ -276,21 +321,24 @@ var MARCAS = (function () {
   if (act && !ACTS.some(function (x) { return x.id === act; })) ACTS.unshift({ id: act, k: modo === 'num' ? 'num' : 'act', n: q.get('x') || 'Activity', f: '', aus: Object.keys(AUS0) });
   var actInfo = function (id) { for (var i = 0; i < ACTS.length; i++) if (ACTS[i].id === id) return ACTS[i]; return null; };
   function claveAcc() { return modo === 'asis' || modo === 'part' ? modo : modo + '.' + act; }
-  function guardarEstado() { RES[claveAcc()] = { modo: modo, act: act, conteo: conteo, estadoAl: estadoAl, notaAl: notaAl, respuesta: respuesta, clave: clave, total: total }; }
+  function guardarEstado() { RES[claveAcc()] = { modo: modo, act: act, conteo: conteo, estadoAl: estadoAl, notaAl: notaAl, respuesta: respuesta, clave: clave, total: total, pregs: pregs }; }
   function cargarEstado() {
-    var s = RES[claveAcc()] || { conteo: {}, estadoAl: {}, notaAl: {}, respuesta: {}, clave: '', total: 0 };
-    conteo = s.conteo; estadoAl = s.estadoAl; notaAl = s.notaAl; respuesta = s.respuesta; clave = s.clave; total = s.total; ultimo = {};
+    var s = RES[claveAcc()] || { conteo: {}, estadoAl: {}, notaAl: {}, respuesta: {}, clave: '', total: 0, pregs: [] };
+    conteo = s.conteo; estadoAl = s.estadoAl; notaAl = s.notaAl; respuesta = s.respuesta; clave = s.clave; total = s.total; pregs = s.pregs || []; ultimo = {};
   }
   document.querySelectorAll('#estados button').forEach(function (b) { b.onclick = function () { estadoSel = b.dataset.e; document.querySelectorAll('#estados button').forEach(function (x) { x.classList.toggle('on', x === b); }); $('#estNom').textContent = NOMEST[LETRA[estadoSel]]; }; });
   document.querySelectorAll('#notas button').forEach(function (b) { b.onclick = function () {
     if (b.dataset.v === '+') { medio = !medio; b.classList.toggle('on', medio); }
     else { nota = Number(b.dataset.v); document.querySelectorAll('#notas button:not(#medio)').forEach(function (x) { x.classList.toggle('on', x === b); }); }
   }; });
-  document.querySelectorAll('#cant button').forEach(function (b) { b.onclick = function () { CANT = Number(b.dataset.q); document.querySelectorAll('#cant button').forEach(function (x) { x.classList.toggle('on', x === b); }); $('#aTodos').textContent = (CANT > 0 ? '+' : '') + CANT + ' to everyone'; pintarEquipos(); }; });
+  var BASE = 1, UNI = 1;
+  function txCant() { var a = Math.abs(BASE); return (CANT > 0 ? '+' : '−') + a + (UNI === 10 ? (a === 1 ? ' point' : ' points') : (a === 1 ? ' tenth' : ' tenths')); }
+  document.querySelectorAll('#unidad button').forEach(function (b) { b.onclick = function () { UNI = Number(b.dataset.u); CANT = BASE * UNI; document.querySelectorAll('#unidad button').forEach(function (x) { x.classList.toggle('on', x === b); }); $('#cantTx').textContent = UNI === 10 ? 'Each scan or tap adds points (1 point = 10 tenths):' : 'Each scan or tap adds tenths:'; $('#aTodos').textContent = txCant() + ' to everyone'; pintarEquipos(); }; });
+  document.querySelectorAll('#cant button').forEach(function (b) { b.onclick = function () { BASE = Number(b.dataset.q); CANT = BASE * UNI; document.querySelectorAll('#cant button').forEach(function (x) { x.classList.toggle('on', x === b); }); $('#aTodos').textContent = txCant() + ' to everyone'; pintarEquipos(); }; });
   $('#modoEq').onclick = function () { modoEq = !modoEq; this.classList.toggle('on', modoEq); this.textContent = '👥 Team mode: ' + (modoEq ? 'on · a scan counts for the whole team' : 'off'); };
   $('#aTodos').onclick = function () {
     var n = 0; orden.forEach(function (al) { if (AUS[al.code]) return; sumar(al.code, CANT); n++; });
-    sonar(true); aviso2((CANT > 0 ? '+' : '') + CANT + ' to everyone', n + ' students' + (Object.keys(AUS).length ? ' (absent ones skipped)' : ''), 'ok'); actualizar();
+    sonar(true); aviso2(txCant() + ' to everyone', n + ' students' + (Object.keys(AUS).length ? ' (absent ones skipped)' : ''), 'ok'); actualizar();
   };
   function equipoDe(c) { for (var i = 0; i < EQ.length; i++) if (EQ[i][1].indexOf(c) >= 0) return EQ[i]; return null; }
   function sumar(c, d) { conteo[c] = (conteo[c] || 0) + d; if (!conteo[c]) delete conteo[c]; total = Object.keys(conteo).reduce(function (s, k) { return s + conteo[k]; }, 0); }
@@ -298,25 +346,25 @@ var MARCAS = (function () {
     var box = $('#equipos'); box.innerHTML = '';
     EQ.forEach(function (e) {
       var b = document.createElement('button'); b.innerHTML = '<span></span><small></small>';
-      b.firstChild.textContent = '👥 ' + e[0]; b.lastChild.textContent = e[1].length + ' · tap for ' + (CANT > 0 ? '+' : '') + CANT + ' each';
-      b.onclick = function () { e[1].forEach(function (c) { if (porCodigo[c]) sumar(c, CANT); }); sonar(true); aviso2('👥 ' + e[0], (CANT > 0 ? '+' : '') + CANT + ' for each member', 'ok'); actualizar(); };
+      b.firstChild.textContent = '👥 ' + e[0]; b.lastChild.textContent = e[1].length + ' · tap for ' + txCant() + ' each';
+      b.onclick = function () { e[1].forEach(function (c) { if (porCodigo[c]) sumar(c, CANT); }); sonar(true); aviso2('👥 ' + e[0], txCant() + ' for each member', 'ok'); actualizar(); };
       box.appendChild(b);
     });
   }
   function llenarSelect() {
     var s = $('#selAct'); s.innerHTML = '';
-    var o0 = document.createElement('option'); o0.value = ''; o0.textContent = ACTS.length ? '📝 Activity…' : '📝 No activities this term'; s.appendChild(o0);
+    var o0 = document.createElement('option'); o0.value = ''; o0.textContent = ACTS.length ? 'Activity…' : 'No activities'; s.appendChild(o0);
     ACTS.forEach(function (x) {
       var o = document.createElement('option'); o.value = x.id;
       var hechos = RES[(x.k === 'num' ? 'num' : 'act') + '.' + x.id], n = hechos ? Object.keys(x.k === 'num' ? hechos.notaAl : hechos.conteo).length : 0;
-      o.textContent = (x.k === 'num' ? '🔢 ' : '📝 ') + x.n + (x.f ? ' · ' + x.f.slice(5).split('-').reverse().join('/') : '') + (n ? ' (' + n + ')' : '');
+      o.textContent = x.n + (x.f ? ' · ' + x.f.slice(5).split('-').reverse().join('/') : '') + (n ? ' (' + n + ')' : '');
       s.appendChild(o);
     });
     s.value = (modo === 'act' || modo === 'num') ? act : '';
   }
   function configurarUI() {
     var info = act ? actInfo(act) : null;
-    $('#titulo').textContent = modo === 'part' ? 'Points' : (nombres[modo] || 'Scanner');
+    $('#titulo').textContent = modo === 'part' ? 'Participation' : (nombres[modo] || 'Scanner');
     $('#sub').textContent = (q.get('l') || '') + (info ? ' · ' + info.n : '');
     $('#estados').hidden = modo !== 'act'; if (modo === 'act') $('#estNom').textContent = NOMEST[LETRA[estadoSel]];
     $('#notas').hidden = modo !== 'num';
@@ -324,15 +372,15 @@ var MARCAS = (function () {
     $('#modos').hidden = modo === 'quiz';
     if (modo === 'quiz') { metodo = 'tarjetas'; $('#marco').hidden = true; }
     var esPart = modo === 'part';
-    $('#cant').hidden = !esPart; $('#extraPart').hidden = !esPart; $('#equipos').hidden = !esPart || !EQ.length; $('#modoEq').hidden = !EQ.length;
+    $('#cant').hidden = !esPart; $('#unidad').hidden = !esPart; $('#extraPart').hidden = !esPart; $('#equipos').hidden = !esPart || !EQ.length; $('#modoEq').hidden = !EQ.length;
     AUS = modo === 'asis' ? {} : (info && info.aus ? info.aus.reduce(function (o, c) { o[c] = 1; return o; }, {}) : (modo === 'part' ? AUS0 : {}));
-    $('#ayuda').textContent = modo === 'quiz' ? 'Students turn the card so their answer letter is on top. Answers update live.'
+    $('#ayuda').textContent = modo === 'quiz' ? 'Read question 1, scan the answers and choose the correct letter. Tap Next question for the next one. You can do as many as you want.'
       : modo === 'act' ? 'Choose the status, then scan. Tap a number to change its status by hand.'
       : modo === 'num' ? 'Choose the grade, then scan. Tap a number to give it the selected grade; tap again to remove it.'
-      : modo === 'part' ? 'Choose how many points, then scan a student, tap numbers, tap a team or give them to everyone.'
+      : modo === 'part' ? 'Each tap is one tenth (⭐ +1 pt = 10 tenths). Scan a student, tap numbers, tap a team or give them to everyone.'
       : 'Green numbers are already scanned. Tap a number to add or remove it by hand.';
     if (multi) {
-      $('#acc').hidden = false;
+      $('#acc').hidden = false; $('#accT').hidden = false;
       document.querySelectorAll('#acc button').forEach(function (b) { b.classList.toggle('on', b.dataset.acc === modo); });
       llenarSelect(); $('#selAct').classList.toggle('on', modo === 'act' || modo === 'num' || modo === 'quiz');
     }
@@ -340,7 +388,7 @@ var MARCAS = (function () {
   }
   function cambiarAccion(m, a) {
     guardarEstado(); modo = m; act = a || ''; cargarEstado(); configurarUI();
-    aviso2('Now: ' + (modo === 'part' ? 'Points' : nombres[modo]), act && actInfo(act) ? actInfo(act).n : 'Scan the cards', '');
+    aviso2('Now: ' + (modo === 'part' ? 'Participation' : nombres[modo]), act && actInfo(act) ? actInfo(act).n : 'Scan the cards', '');
     actualizar();
   }
   document.querySelectorAll('#acc button').forEach(function (b) { b.onclick = function () { if (b.dataset.acc !== modo) cambiarAccion(b.dataset.acc, ''); }; });
@@ -348,7 +396,7 @@ var MARCAS = (function () {
   if (modo === 'equipo') $('#ayuda').textContent = 'Scan everyone on the team, or tap their numbers. Then tap Finish.';
   if (modo === 'sanitario') $('#ayuda').textContent = 'Scan a student when they leave and again when they come back. The scanner stays open: tap Back to the app when you finish.';
   if (modo === 'incidencia') $('#ayuda').textContent = 'Scan or tap the student. You will write the incident right after.';
-  if (soloEspecial) { $('#btnBan').hidden = true; $('#btnInc').hidden = true; $('#terminar').hidden = true; $('#cancelar').textContent = 'Back to the app'; }
+  if (soloEspecial) { $('#btnBan').hidden = true; $('#btnInc').hidden = true; $('#esp').hidden = true; $('#terminar').hidden = true; $('#cancelar').textContent = 'Back to the app'; }
   if (modo === 'sanitario') { $('#cancelar').hidden = true; $('#terminar').hidden = false; $('#terminar').textContent = 'Done · back to the app'; }
   if (modo === 'equipo') $('#terminar').textContent = 'Create team';
   function ponerMetodo(m) {
@@ -357,7 +405,24 @@ var MARCAS = (function () {
     $('#marco').hidden = m === 'tarjetas';
   }
   document.querySelectorAll('#modos button').forEach(function (b) { b.onclick = function () { ponerMetodo(b.dataset.m); }; });
-  document.querySelectorAll('#quiz .clave button').forEach(function (b) { b.onclick = function () { clave = clave === b.dataset.k ? '' : b.dataset.k; document.querySelectorAll('#quiz .clave button').forEach(function (x) { x.classList.toggle('on', x.dataset.k === clave); }); pintar(); }; });
+  document.querySelectorAll('#quiz .clave button').forEach(function (b) { b.onclick = function () { clave = clave === b.dataset.k ? '' : b.dataset.k; marcarClave(); pintar(); }; });
+  /* Quiz de varias preguntas: pregunta 1, escanear; siguiente; pregunta 2, escanear… */
+  var pregs = [];
+  function marcarClave() { document.querySelectorAll('#quiz .clave button').forEach(function (x) { x.classList.toggle('on', x.dataset.k === clave); }); var q = $('#qNum'); if (q) q.textContent = 'Question ' + (pregs.length + 1) + (pregs.length ? ' · ' + pregs.length + ' saved' : ''); }
+  $('#qSig').onclick = function () {
+    if (!Object.keys(respuesta).length) { aviso2('Scan the answers first', 'Question ' + (pregs.length + 1), ''); return; }
+    if (!clave) { alert('Choose the correct answer of this question first (A, B, C or D).'); return; }
+    pregs.push({ clave: clave, respuesta: respuesta }); respuesta = {}; clave = ''; marcarClave(); sonar(true);
+    aviso2('Question ' + (pregs.length + 1), 'Students show their new answer', 'ok'); actualizar();
+  };
+  function codsQuiz(st) {
+    var todas = (st.pregs || []).slice(); if (Object.keys(st.respuesta).length) todas.push({ clave: st.clave, respuesta: st.respuesta });
+    if (todas.length <= 1) { var q = todas[0] || st; var l1 = ['KEY.' + q.clave]; Object.keys(q.respuesta).forEach(function (c) { l1.push(c + '.' + q.respuesta[c]); }); return l1; }
+    var cods = {}; todas.forEach(function (q) { Object.keys(q.respuesta).forEach(function (c) { cods[c] = 1; }); });
+    var l = ['KEYS.' + todas.map(function (q) { return q.clave; }).join('')];
+    Object.keys(cods).forEach(function (c) { l.push(c + '.' + todas.map(function (q) { return q.respuesta[c] || '-'; }).join('')); });
+    return l;
+  }
   function cambiarMin(d) { MIN = Math.max(1, Math.min(30, MIN + d)); $('#minTxt').textContent = MIN + ' min'; pintarPases(); }
   function cambiarMax(d) { MAX = Math.max(1, Math.min(10, MAX + d)); $('#maxTxt').textContent = MAX; }
   $('#maxMenos').onclick = function () { cambiarMax(-1); }; $('#maxMas').onclick = function () { cambiarMax(1); }; $('#maxTxt').textContent = MAX;
@@ -414,7 +479,7 @@ var MARCAS = (function () {
     var conLista = modo === 'asis' || modo === 'act' || modo === 'quiz' || modo === 'num';
     $('#cuentaBox').hidden = modo === 'incidencia';
     $('#cuenta').textContent = conLista ? hechos + ' / ' + n : hechos;
-    $('#faltan').textContent = modo === 'equipo' ? 'on this team' : modo === 'part' ? 'points given' : modo === 'sanitario' ? 'out of ' + MAX + ' allowed' : modo === 'asis' ? (n - hechos) + ' not scanned' : modo === 'quiz' ? (n - hechos) + ' to answer' : (n - hechos) + ' left';
+    $('#faltan').textContent = modo === 'equipo' ? 'on this team' : modo === 'part' ? 'tenths given' : modo === 'sanitario' ? 'out of ' + MAX + ' allowed' : modo === 'asis' ? (n - hechos) + ' not scanned' : modo === 'quiz' ? (n - hechos) + ' to answer' : (n - hechos) + ' left';
     $('#barraBox').hidden = !conLista;
     $('#barra').style.width = (n ? Math.min(100, hechos / n * 100) : 0) + '%';
     pintar(); pintarPases();
@@ -489,7 +554,7 @@ var MARCAS = (function () {
     if (modo === 'part') {
       var eq = modoEq ? equipoDe(c) : null, quienes = eq ? eq[1].filter(function (k) { return porCodigo[k]; }) : [c];
       quienes.forEach(function (k) { sumar(k, CANT); }); sonar(true);
-      aviso2(eq ? '👥 ' + eq[0] + ' (' + quienes.length + ')' : 'No. ' + al.num + ' ' + al.nom, (CANT > 0 ? '+' : '') + CANT + (eq ? ' each' : ' · total ' + (conteo[c] || 0)), 'ok');
+      aviso2(eq ? '👥 ' + eq[0] + ' (' + quienes.length + ')' : 'No. ' + al.num + ' ' + al.nom, txCant() + (eq ? ' each' : ' · total ' + (conteo[c] || 0)), 'ok');
       actualizar(); return;
     }
     if (conteo[c]) return;
@@ -588,7 +653,7 @@ var MARCAS = (function () {
       var secs = [], falta = '';
       Object.keys(RES).forEach(function (k) {
         var s = RES[k], l = [];
-        if (s.modo === 'quiz') { if (!Object.keys(s.respuesta).length) return; if (!s.clave) { falta = k; return; } l.push('KEY.' + s.clave); Object.keys(s.respuesta).forEach(function (c) { l.push(c + '.' + s.respuesta[c]); }); }
+        if (s.modo === 'quiz') { if (!Object.keys(s.respuesta).length && !(s.pregs || []).length) return; if (Object.keys(s.respuesta).length && !s.clave) { falta = k; return; } l = codsQuiz(s); }
         else if (s.modo === 'num') Object.keys(s.notaAl).forEach(function (c) { l.push(c + '.' + Math.round(s.notaAl[c] * 10)); });
         else if (s.modo === 'act') Object.keys(s.conteo).forEach(function (c) { l.push(c + '.' + (s.estadoAl[c] || 'c')); });
         else if (s.modo === 'part') Object.keys(s.conteo).forEach(function (c) { if (s.conteo[c]) l.push(c + '.' + s.conteo[c]); });
@@ -601,9 +666,8 @@ var MARCAS = (function () {
     } else if (conDatos && !soloEspecial) {
       var cods = [];
       if (modo === 'quiz') {
-        if (!clave) { alert('Choose the correct answer first (A, B, C or D).'); return; }
-        cods.push('KEY.' + clave);
-        Object.keys(respuesta).forEach(function (c) { cods.push(c + '.' + respuesta[c]); });
+        if (Object.keys(respuesta).length && !clave) { alert('Choose the correct answer first (A, B, C or D).'); return; }
+        cods = codsQuiz({ respuesta: respuesta, clave: clave, pregs: pregs });
       } else if (modo === 'num') Object.keys(notaAl).forEach(function (c) { cods.push(c + '.' + Math.round(notaAl[c] * 10)); });
       else if (modo === 'act') Object.keys(conteo).forEach(function (c) { cods.push(c + '.' + (estadoAl[c] || 'c')); });
       else Object.keys(conteo).forEach(function (c) { for (var i = 0; i < conteo[c]; i++) cods.push(c); });
@@ -616,7 +680,7 @@ var MARCAS = (function () {
   }
   $('#terminar').onclick = function () { volver(true); };
   $('#cancelar').onclick = function () { clearTimeout(regreso); volver(false); };
-  ponerMetodo(metodo); ponerEspecial(especial); configurarUI(); actualizar();
+  ponerMetodo(metodo); ponerEspecial(especial); configurarUI(); marcarClave(); actualizar();
 })();
 </script>
 </body>

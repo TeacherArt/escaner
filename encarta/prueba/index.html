@@ -1096,7 +1096,10 @@ function toast(t){ $$('.toast').forEach(x=>x.remove()); const el=document.create
 function ic(n, alt){ return `<img class="ic" src="${UI}ic_${n}.webp" alt="${esc(alt||'')}" loading="lazy" draggable="false">`; }
 function mishi(n, cls){ return `<img class="${cls||''}" src="${UI}mishi_${n}.webp" alt="Mishi" draggable="false">`; }
 function frase(arr){ return arr.join(' ').replace(/\s+([?.,!])/g,'$1').replace(/\s+'s/g,"'s"); }
+const UNA_LETRA = /^\s*([A-Z])[.!?]?\s*$/, DELETREO = /^\s*([A-Za-z](?:\s*-\s*[A-Za-z])+)\s*\.?\s*$/;
+const DELETREADAS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','January','February','March','April','May','June','July','August','September','October','November','December'];
 function idioma(s){
+  if (UNA_LETRA.test(s) || DELETREO.test(s)) return 'en';   /* «Y» o «M-O-N-D-A-Y» son letras en inglés, no la «y» del español */
   if (/[áéíóúñ¿¡]/i.test(s)) return 'es';
   const w = String(s).toLowerCase().match(/[a-z']+/g)||[];
   const es = w.filter(x=>['de','la','el','los','las','que','y','en','con','tu','es','un','una','para','aqui','vas','antes','despues','cada','clase','abre','juega','por','del','se','mi','lo','al','paso','entra','elige','revisa','segundos','minutos','horas','semanas','ronda','minuto','segundo','tres','dos','uno','compa'].includes(x)).length;
@@ -1164,8 +1167,12 @@ function claveAud(s){ return String(s).toLowerCase().normalize('NFD').replace(/\
 const AUD = {}; Object.keys(M.aud).forEach(k=>AUD[claveAud(k)] = M.aud[k]);
 var AUD2 = {}; /* Dilo y dictados con la voz nueva; se llena en fa_core.js */
 function buscarAud(s){
-  const k = claveAud(String(s).replace(/^audio:\s*/i,'').replace(/\([^)]*\)/g,''));
+  const t = String(s).replace(/^audio:\s*/i,'').replace(/\([^)]*\)/g,''), k = claveAud(t);
   if (!k) return null; if (AUD2[k]) return AUD2[k]; if (AUD[k]) return AUD[k];
+  /* sin audio propio: la letra suelta del abecedario («Y, as in year.») y los días o meses deletreados */
+  const enT01 = (()=>{ try { return !!(RUN && RUN.f && RUN.f.id==='T-01'); } catch(e){ return false; } })();
+  const l = enT01 && UNA_LETRA.exec(t); if (l) return 'AUD-T01-L-' + l[1];
+  const d = DELETREO.exec(t); if (d){ const w = d[1].replace(/[\s-]/g,'').toLowerCase(); const p = DELETREADAS.find(x=>x.toLowerCase()===w); if (p) return 'AUD-P-SP-' + p; }
   return null;
 }
 let btnHablando = null, sonando = null;

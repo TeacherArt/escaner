@@ -802,6 +802,8 @@ const P = {"origin":[334.63811299483666,217.14397535878976],"scale":1.3081975683
 const TOP = 62;
 const KN = {"month":[-12,-10,9],"number":[30,-10,8],"year":[83,-10,8],"ending":[48,-10,8],"day":[-71,-10,10]};
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+/* el año solo va de 2026 a 2027: son los años que tienen audio con la voz de la Encarta */
+const otroAnio = y => (y === 2026 ? 2027 : 2026);
 const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const suffix = (n) => (n % 100 >= 11 && n % 100 <= 13) ? "th" : n % 10 === 1 ? "st" : n % 10 === 2 ? "nd" : n % 10 === 3 ? "rd" : "th";
 const dim = (m, y) => new Date(y, m + 1, 0).getDate();
@@ -822,7 +824,7 @@ function neighbours(key, s) {
     const t = { ...s };
     if (key === "month") t.m = (s.m + d + 12) % 12;
     if (key === "number" || key === "ending" || key === "day") { const max = dim(s.m, s.y); t.n = ((s.n - 1 + d + max) % max) + 1; }
-    if (key === "year") t.y = s.y + d;
+    if (key === "year") t.y = otroAnio(s.y);
     t.n = Math.min(t.n, dim(t.m, t.y));
     return valuesOf(t)[key];
   };
@@ -852,7 +854,7 @@ function bump(key, d) {
   const before = valuesOf(S);
   if (key === "month") S.m = (S.m + d + 12) % 12;
   if (key === "number") { const max = dim(S.m, S.y); S.n = ((S.n - 1 + d + max) % max) + 1; }
-  if (key === "year") S.y = Math.min(2030, Math.max(2020, S.y + d));
+  if (key === "year") S.y = otroAnio(S.y);
   S.n = Math.min(S.n, dim(S.m, S.y));
   const after = valuesOf(S);
   for (const kk of Object.keys(roll)) if (before[kk] !== after[kk]) { roll[kk] = d * (sizeOf[kk] + 4); target[kk] += d * (kk === "day" ? 0.9 : kk === "ending" ? -0.7 : 0.5); }

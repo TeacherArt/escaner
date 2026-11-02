@@ -958,7 +958,7 @@ function jsonp(params){
     const tm = setTimeout(()=>fin({ok:false,e:'RED'}), 15000);
     function fin(r){ clearTimeout(tm); delete window[cb]; sc.remove(); res(r); }
     window[cb] = fin; sc.onerror = ()=>fin({ok:false,e:'RED'});
-    const q = Object.keys(params).map(k=>k+'='+encodeURIComponent(params[k])).join('&');
+    const q = Object.keys(params).map(k=>(k==='c'?'cod':k)+'='+encodeURIComponent(params[k])).join('&');
     sc.src = PORTAL + (PORTAL.indexOf('?')>=0?'&':'?') + q + '&cb=' + cb;
     document.body.appendChild(sc);
   });

@@ -790,9 +790,16 @@ const TEMA = {'1°':'Days, Months and Dates','2°':'Past Simple · Lives We Reme
 function hoyISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 const S = { pant:'login', arg:null, hist:[], grado:'1°', grupo:'', nombre:'', rol:MAESTRO?'maestro':'alumno', hoy:hoyISO(),
   res:{}, repaso:{}, votos:{}, auto:{}, vistos:{}, secSel:null, semSel:0, q:'' };
+/* El Portal abre la Encarta con #a=<huella del código del alumno>: si la cuenta guardada es de otro alumno, se pide entrar de nuevo */
+function huellaEnc(c){ c = String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,''); let h = 5381; for (let i=0;i<c.length;i++) h = (h*33 + c.charCodeAt(i)) % 4294967296; return h.toString(36); }
+let AVISO_CUENTA = '';
 function cargarLocal(){
   try { const g = JSON.parse(localStorage.getItem('encarta_prev')||'{}'); ['res','repaso','votos','auto','vistos'].forEach(k=>S[k]=g[k]||{}); } catch(e){}
-  try { const ses = JSON.parse(localStorage.getItem('encarta_ses')||'null'); if (ses && ses.grado){ S.grado=ses.grado; S.grupo=ses.grupo||''; S.nombre=ses.n||''; S.c=ses.c||''; S.tk=ses.tk||''; S.pant='inicio'; } } catch(e){}
+  const m = /[#&]a=([a-z0-9]+)/.exec(location.hash||''), pide = m && m[1];
+  if (pide) try { history.replaceState(null, '', location.pathname + location.search); } catch(e){}
+  try { const ses = JSON.parse(localStorage.getItem('encarta_ses')||'null');
+    if (ses && ses.grado && pide && huellaEnc(ses.c) !== pide){ localStorage.removeItem('encarta_ses'); AVISO_CUENTA = 'Entra con tu código y tu PIN.'; }
+    else if (ses && ses.grado){ S.grado=ses.grado; S.grupo=ses.grupo||''; S.nombre=ses.n||''; S.c=ses.c||''; S.tk=ses.tk||''; S.pant='inicio'; } } catch(e){}
   if (MAESTRO) S.pant = 'inicio';
 }
 function guardar(){ try{ localStorage.setItem('encarta_prev', JSON.stringify({res:S.res,repaso:S.repaso,votos:S.votos,auto:S.auto,vistos:S.vistos})); }catch(e){} }
@@ -1077,6 +1084,7 @@ function entrarCon(r, codigo){
 function salir(){ REG.enviar(true); try{ localStorage.removeItem('encarta_ses'); }catch(e){} S.c=''; S.tk=''; S.hist=[]; S.pant='login'; pintar(); }
 function conectarLogin(){
   $$('[data-gr]').forEach(b=>b.onclick=()=>entrarCon({grado:b.dataset.gr}));
+  if (AVISO_CUENTA){ const m=$('#lMsg'); if (m) m.textContent = AVISO_CUENTA; AVISO_CUENTA=''; }
   const f = $('#fLogin'); if (!PORTAL){ f.onsubmit = e=>e.preventDefault(); return; }
   f.onsubmit = async e=>{
     e.preventDefault(); SND.desbloquear();
